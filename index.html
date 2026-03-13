@@ -134,7 +134,22 @@ body{font-family:system-ui,sans-serif;background:#0F172A;color:#fff;min-height:1
 <body>
 <div class="toast hide" id="toast"></div>
 <div class="screen active" id="s-splash">
-  <script>setTimeout(function(){var s=document.querySelectorAll('.screen');s.forEach(function(x){x.style.display='none';});document.getElementById('s-login').style.display='flex';},2000);</script>
+  <script>
+var h=location.hash;
+if(h.includes('access_token')){
+  var p=new URLSearchParams(h.slice(1));
+  var tk=p.get('access_token');
+  if(tk){localStorage.setItem('mm_tk',tk);location.hash='';}
+}
+if(localStorage.getItem('mm_tk')){
+  setTimeout(function(){init();},100);
+} else {
+  setTimeout(function(){
+    document.querySelectorAll('.screen').forEach(function(s){s.style.display='none';});
+    document.getElementById('s-login').style.display='flex';
+  },1500);
+}
+  </script>
   <div class="splash-logo">⚡</div>
   <div class="splash-title">Micro Mock</div>
   <div class="splash-sub">Daily MCQ · UPSC · SSC · Banking</div>
