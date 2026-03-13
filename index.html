@@ -3,22 +3,16 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
-<meta name="theme-color" content="#4F46E5"/>
 <title>Micro Mock</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+*{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:system-ui,sans-serif;background:#0F172A;color:#fff;min-height:100vh;}
 .screen{display:none;min-height:100vh;flex-direction:column;}
 .screen.active{display:flex;}
-
-/* SPLASH */
 #s-splash{background:linear-gradient(135deg,#0F172A,#1E1B4B,#065F46);align-items:center;justify-content:center;text-align:center;}
-.splash-logo{font-size:64px;margin-bottom:16px;animation:pulse 1s infinite;}
-@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.05);}}
+.splash-logo{font-size:64px;margin-bottom:16px;}
 .splash-title{font-size:32px;font-weight:900;}
 .splash-sub{font-size:14px;color:#94A3B8;margin-top:8px;}
-
-/* LOGIN */
 #s-login{background:linear-gradient(135deg,#0F172A,#1E1B4B);align-items:center;justify-content:center;padding:24px;}
 .login-box{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:36px 24px;width:100%;max-width:340px;text-align:center;}
 .login-emoji{font-size:52px;margin-bottom:14px;}
@@ -27,32 +21,23 @@ body{font-family:system-ui,sans-serif;background:#0F172A;color:#fff;min-height:1
 .btn-google{background:#fff;color:#333;border:none;border-radius:12px;padding:15px;font-size:15px;font-weight:700;width:100%;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;}
 .features{margin-top:24px;text-align:left;display:flex;flex-direction:column;gap:10px;}
 .feat{display:flex;align-items:center;gap:10px;font-size:13px;color:#94A3B8;}
-
-/* ONBOARD */
 #s-onboard{background:linear-gradient(135deg,#0F172A,#1E1B4B);align-items:center;justify-content:center;padding:24px;}
 .onboard-box{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:32px 24px;width:100%;max-width:340px;}
 .ob-title{font-size:22px;font-weight:900;margin-bottom:6px;}
 .ob-sub{font-size:13px;color:#94A3B8;margin-bottom:20px;}
 .name-input{background:#1E293B;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:14px;font-size:14px;color:#fff;width:100%;margin-bottom:16px;outline:none;}
-.name-input:focus{border-color:#4F46E5;}
 .exam-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
 .exam-btn{background:#1E293B;border:2px solid transparent;border-radius:12px;padding:16px 10px;text-align:center;cursor:pointer;font-size:13px;font-weight:700;color:#fff;}
 .exam-btn.sel{border-color:#4F46E5;background:#1E1B4B;}
 .exam-icon{font-size:26px;margin-bottom:6px;}
 .btn-start{background:linear-gradient(135deg,#4F46E5,#059669);color:#fff;border:none;border-radius:12px;padding:15px;font-size:15px;font-weight:700;width:100%;cursor:pointer;}
-
-/* NAVBAR */
 .navbar{background:#1E293B;border-bottom:1px solid rgba(255,255,255,.08);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
 .nav-logo{font-size:18px;font-weight:900;color:#A5F3FC;}
 .nav-av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#4F46E5,#059669);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;cursor:pointer;}
-
-/* BOTTOM NAV */
 .bnav{background:#1E293B;border-top:1px solid rgba(255,255,255,.08);display:flex;position:fixed;bottom:0;left:0;right:0;z-index:50;}
 .bn-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:3px;cursor:pointer;color:#64748B;font-size:10px;font-weight:600;}
 .bn-item.on{color:#A5F3FC;}
 .bn-icon{font-size:20px;}
-
-/* HOME */
 #s-home{background:#0F172A;}
 .home-body{flex:1;padding:20px 20px 90px;overflow-y:auto;}
 .hero-card{background:linear-gradient(135deg,#1E1B4B,#065F46);border-radius:16px;padding:24px;margin-bottom:20px;}
@@ -71,20 +56,15 @@ body{font-family:system-ui,sans-serif;background:#0F172A;color:#fff;min-height:1
 .subj-ico{font-size:24px;}
 .subj-name{font-size:13px;font-weight:700;}
 .subj-info{font-size:11px;color:#64748B;}
-
-/* QUIZ */
 #s-quiz{background:#0F172A;}
 .quiz-body{flex:1;padding:20px 20px 100px;overflow-y:auto;}
 .prog-bar{background:#1E293B;border-radius:6px;height:6px;margin-bottom:20px;overflow:hidden;}
 .prog-fill{height:100%;background:linear-gradient(90deg,#4F46E5,#A5F3FC);border-radius:6px;transition:width .4s;}
 .quiz-meta{display:flex;justify-content:space-between;font-size:12px;color:#64748B;font-weight:600;margin-bottom:14px;}
 .q-num{color:#A5F3FC;}
-.q-timer{color:#F59E0B;}
 .q-text{font-size:18px;font-weight:700;line-height:1.5;margin-bottom:24px;color:#F1F5F9;}
 .opts{display:flex;flex-direction:column;gap:12px;}
 .opt{background:#1E293B;border:2px solid transparent;border-radius:12px;padding:16px;font-size:14px;font-weight:600;color:#E2E8F0;cursor:pointer;text-align:left;display:flex;align-items:center;gap:12px;}
-.opt:hover{border-color:#4F46E5;}
-.opt.sel{border-color:#4F46E5;background:#1E1B4B;}
 .opt.ok{border-color:#059669;background:#064E3B;color:#6EE7B7;}
 .opt.no{border-color:#DC2626;background:#450A0A;color:#FCA5A5;}
 .opt-let{width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;}
@@ -93,8 +73,6 @@ body{font-family:system-ui,sans-serif;background:#0F172A;color:#fff;min-height:1
 .quiz-foot{position:fixed;bottom:0;left:0;right:0;background:#0F172A;border-top:1px solid rgba(255,255,255,.08);padding:16px 20px 28px;}
 .btn-next{background:#4F46E5;color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;width:100%;}
 .btn-next:disabled{opacity:.3;cursor:not-allowed;}
-
-/* RESULTS */
 #s-results{background:linear-gradient(135deg,#0F172A,#1E1B4B);align-items:center;justify-content:center;padding:24px;}
 .res-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:32px 24px;width:100%;max-width:360px;text-align:center;}
 .res-emoji{font-size:56px;margin-bottom:10px;}
@@ -112,9 +90,7 @@ body{font-family:system-ui,sans-serif;background:#0F172A;color:#fff;min-height:1
 .pop-tease-s{font-size:12px;color:#818CF8;margin-bottom:12px;}
 .btn-pro{background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;width:100%;}
 .btn-share{background:linear-gradient(135deg,#059669,#065F46);color:#fff;border:none;border-radius:12px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-bottom:10px;}
-.btn-home{background:rgba(255,255,255,.08);color:#fff;border:none;border-radius:12px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;width:100%;}
-
-/* LEADERBOARD */
+.btn-home-r{background:rgba(255,255,255,.08);color:#fff;border:none;border-radius:12px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;width:100%;}
 #s-lb{background:#0F172A;}
 .lb-body{flex:1;padding:20px 20px 90px;overflow-y:auto;}
 .lb-head{background:linear-gradient(135deg,#1E1B4B,#065F46);border-radius:16px;padding:20px;margin-bottom:20px;text-align:center;}
@@ -130,8 +106,6 @@ body{font-family:system-ui,sans-serif;background:#0F172A;color:#fff;min-height:1
 .lb-sc{text-align:right;}
 .lb-sv{font-size:16px;font-weight:800;color:#A5F3FC;}
 .lb-sa{font-size:11px;color:#64748B;}
-
-/* PROFILE */
 #s-profile{background:#0F172A;}
 .prof-body{flex:1;padding:20px 20px 90px;overflow-y:auto;}
 .prof-hero{background:linear-gradient(135deg,#0F172A,#1E3A5F);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:24px;margin-bottom:16px;text-align:center;}
@@ -153,24 +127,17 @@ body{font-family:system-ui,sans-serif;background:#0F172A;color:#fff;min-height:1
 .uf{font-size:12px;color:#C7D2FE;}
 .btn-up{background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;width:100%;margin-bottom:10px;}
 .btn-out{background:rgba(220,38,38,.15);color:#FCA5A5;border:1px solid rgba(220,38,38,.3);border-radius:12px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;width:100%;}
-
-/* TOAST */
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1E293B;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:12px 20px;font-size:13px;font-weight:600;z-index:999;opacity:1;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
 .toast.hide{opacity:0;}
 </style>
 </head>
 <body>
-
 <div class="toast hide" id="toast"></div>
-
-<!-- SPLASH -->
 <div class="screen active" id="s-splash">
   <div class="splash-logo">⚡</div>
   <div class="splash-title">Micro Mock</div>
   <div class="splash-sub">Daily MCQ · UPSC · SSC · Banking</div>
 </div>
-
-<!-- LOGIN -->
 <div class="screen" id="s-login">
   <div class="login-box">
     <div class="login-emoji">🎯</div>
@@ -188,8 +155,6 @@ body{font-family:system-ui,sans-serif;background:#0F172A;color:#fff;min-height:1
     </div>
   </div>
 </div>
-
-<!-- ONBOARD -->
 <div class="screen" id="s-onboard">
   <div class="onboard-box">
     <div class="ob-title">Welcome! 🎉</div>
@@ -205,8 +170,6 @@ body{font-family:system-ui,sans-serif;background:#0F172A;color:#fff;min-height:1
     <button class="btn-start" onclick="finishOnboard()">Start Practicing →</button>
   </div>
 </div>
-
-<!-- HOME -->
 <div class="screen" id="s-home">
   <div class="navbar"><div class="nav-logo">⚡ Micro Mock</div><div class="nav-av" id="hm-av" onclick="go('s-profile')">U</div></div>
   <div class="home-body">
@@ -235,8 +198,6 @@ body{font-family:system-ui,sans-serif;background:#0F172A;color:#fff;min-height:1
     <div class="bn-item" onclick="go('s-profile')"><div class="bn-icon">👤</div>Profile</div>
   </div>
 </div>
-
-<!-- QUIZ -->
 <div class="screen" id="s-quiz">
   <div class="navbar">
     <button onclick="quitQuiz()" style="background:none;border:none;color:#94A3B8;font-size:14px;cursor:pointer;">✕ Quit</button>
@@ -254,8 +215,6 @@ body{font-family:system-ui,sans-serif;background:#0F172A;color:#fff;min-height:1
     <button class="btn-next" id="btn-nxt" onclick="nextQ()" disabled>Select an answer</button>
   </div>
 </div>
-
-<!-- RESULTS -->
 <div class="screen" id="s-results">
   <div class="res-card">
     <div class="res-emoji" id="r-emoji">🎉</div>
@@ -269,15 +228,13 @@ body{font-family:system-ui,sans-serif;background:#0F172A;color:#fff;min-height:1
     </div>
     <div class="pop-tease">
       <div class="pop-tease-t">🔒 Your PoP Card is Ready!</div>
-      <div class="pop-tease-s">Upgrade to Pro to unlock your shareable Proof-of-Preparation card and appear ranked on the leaderboard.</div>
-      <button class="btn-pro" onclick="toast('WhatsApp us to upgrade! Link coming soon 🚀')">Unlock Pro — ₹149/month</button>
+      <div class="pop-tease-s">Upgrade to Pro to unlock your shareable Proof-of-Preparation card.</div>
+      <button class="btn-pro" onclick="toast('WhatsApp us to upgrade! 🚀')">Unlock Pro — ₹149/month</button>
     </div>
     <button class="btn-share" onclick="shareScore()">📤 Share Your Score</button>
-    <button class="btn-home" onclick="go('s-home')">Back to Home</button>
+    <button class="btn-home-r" onclick="go('s-home')">Back to Home</button>
   </div>
 </div>
-
-<!-- LEADERBOARD -->
 <div class="screen" id="s-lb">
   <div class="navbar"><div class="nav-logo">🏆 Leaderboard</div><div class="nav-av" id="lb-av" onclick="go('s-profile')">U</div></div>
   <div class="lb-body">
@@ -290,10 +247,141 @@ body{font-family:system-ui,sans-serif;background:#0F172A;color:#fff;min-height:1
     <div class="bn-item" onclick="go('s-profile')"><div class="bn-icon">👤</div>Profile</div>
   </div>
 </div>
-
-<!-- PROFILE -->
 <div class="screen" id="s-profile">
   <div class="navbar"><div class="nav-logo">👤 Profile</div></div>
   <div class="prof-body">
     <div class="prof-hero">
-   
+      <div class="prof-av" id="pf-av">U</div>
+      <div class="prof-nm" id="pf-nm">Aspirant</div>
+      <div class="prof-em" id="pf-em"></div>
+      <div class="plan-badge">⚡ Free Plan</div>
+    </div>
+    <div style="font-size:11px;font-weight:700;color:#64748B;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;">🪪 Proof of Preparation Card</div>
+    <div class="pop-card">
+      <div class="pop-lock">🔒</div>
+      <div class="pop-title">Proof of Preparation</div>
+      <div class="pop-stats">
+        <div class="ps"><div class="ps-n" id="pf-days">0</div><div class="ps-l">Days</div></div>
+        <div class="ps"><div class="ps-n" id="pf-acc">0%</div><div class="ps-l"
+<script>
+const SB='https://xkijsokwttuypxcgppbe.supabase.co';
+const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhraWpzb2t3dHR1eXB4Y2dwcGJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODE4NzcsImV4cCI6MjA4ODY1Nzg3N30.GVnoXPvWaPtStQpqRV5ozUwjb-JJhhl1Iba660Z8aa8';
+const H={'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'};
+let user=null,profile=null,qs=[],qi=0,score=0,ans=[],done=false,tmr=null,tLeft=600,t0=null,exam=null;
+function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');if(id==='s-lb')loadLB();if(id==='s-profile')loadProfile();}
+let tt;
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.remove('hide');clearTimeout(tt);tt=setTimeout(()=>t.classList.add('hide'),2500);}
+async function get(table,q=''){try{const r=await fetch(`${SB}/rest/v1/${table}${q}`,{headers:H});return r.ok?await r.json():[];}catch(e){return[];}}
+async function post(table,data){try{const r=await fetch(`${SB}/rest/v1/${table}`,{method:'POST',headers:{...H,'Prefer':'return=representation'},body:JSON.stringify(data)});return r.ok?await r.json():null;}catch(e){return null;}}
+function signInGoogle(){location.href=`${SB}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(location.href.split('#')[0])}`;}
+async function init(){
+  const hash=location.hash;
+  if(hash.includes('access_token')){const p=new URLSearchParams(hash.slice(1));const tk=p.get('access_token');if(tk){localStorage.setItem('mm_tk',tk);history.replaceState(null,'',location.pathname);}}
+  const tk=localStorage.getItem('mm_tk');
+  if(!tk){go('s-login');return;}
+  try{
+    const r=await fetch(`${SB}/auth/v1/user`,{headers:{...H,'Authorization':'Bearer '+tk}});
+    if(!r.ok){localStorage.removeItem('mm_tk');go('s-login');return;}
+    user=await r.json();
+    const ex=await get('users',`?id=eq.${user.id}`);
+    if(ex&&ex.length>0){profile=ex[0];if(!profile.name){go('s-onboard');return;}loadHome();}
+    else go('s-onboard');
+  }catch(e){localStorage.removeItem('mm_tk');go('s-login');}
+}
+function logout(){localStorage.removeItem('mm_tk');user=null;profile=null;go('s-login');}
+function pickExam(el,ex){document.querySelectorAll('.exam-btn').forEach(e=>e.classList.remove('sel'));el.classList.add('sel');exam=ex;}
+async function finishOnboard(){
+  const nm=document.getElementById('ob-name').value.trim();
+  if(!nm){toast('Enter your name!');return;}
+  if(!exam){toast('Pick your target exam!');return;}
+  const tk=localStorage.getItem('mm_tk');
+  try{await fetch(`${SB}/rest/v1/users`,{method:'POST',headers:{...H,'Authorization':'Bearer '+tk,'Prefer':'return=representation'},body:JSON.stringify({id:user.id,email:user.email,name:nm,exam_target:exam,plan:'free'})});}catch(e){}
+  profile={id:user.id,email:user.email,name:nm,exam_target:exam,plan:'free'};
+  toast('Welcome to Micro Mock! 🎉');loadHome();
+}
+async function loadHome(){
+  go('s-home');
+  const ini=(profile?.name||'U')[0].toUpperCase();
+  document.getElementById('hm-av').textContent=ini;
+  document.getElementById('lb-av').textContent=ini;
+  const attempts=await get('user_attempts',`?user_id=eq.${user.id}&limit=30`);
+  if(attempts&&attempts.length>0){const avg=attempts.reduce((s,a)=>s+parseFloat(a.accuracy_pct||0),0)/attempts.length;document.getElementById('hm-acc').textContent=Math.round(avg)+'%';document.getElementById('hm-streak').textContent=attempts.length;}
+  const today=new Date().toISOString().split('T')[0];
+  const quiz=await get('quizzes',`?scheduled_for=eq.${today}&is_published=eq.true&limit=1`);
+  if(quiz&&quiz.length>0){document.getElementById('hm-qtitle').textContent=quiz[0].title;document.getElementById('hm-qsub').textContent=quiz[0].exam_target+' · '+quiz[0].subject;}
+}
+async function beginQuiz(){
+  document.getElementById('btn-sq').disabled=true;document.getElementById('btn-sq').textContent='Loading...';
+  const today=new Date().toISOString().split('T')[0];
+  let quiz=await get('quizzes',`?scheduled_for=eq.${today}&is_published=eq.true&limit=1`);
+  if(!quiz||!quiz.length)quiz=await get('quizzes',`?is_published=eq.true&order=created_at.desc&limit=1`);
+  if(!quiz||!quiz.length){toast('No quiz yet! 📚');document.getElementById('btn-sq').disabled=false;document.getElementById('btn-sq').textContent='Start Today\'s Quiz →';return;}
+  const questions=await get('questions',`?quiz_id=eq.${quiz[0].id}&limit=10`);
+  if(!questions||!questions.length){toast('Questions loading soon! 📚');document.getElementById('btn-sq').disabled=false;document.getElementById('btn-sq').textContent='Start Today\'s Quiz →';return;}
+  qs=questions;qi=0;score=0;ans=[];tLeft=600;t0=Date.now();
+  go('s-quiz');renderQ();startTimer();
+}
+function renderQ(){
+  const q=qs[qi];
+  document.getElementById('q-prog').style.width=`${((qi+1)/qs.length)*100}%`;
+  document.getElementById('q-ctr').textContent=`Q${qi+1} of ${qs.length}`;
+  document.getElementById('q-subj').textContent=q.subject||'GS';
+  document.getElementById('q-diff').textContent=(q.difficulty||'medium')[0].toUpperCase()+(q.difficulty||'medium').slice(1);
+  document.getElementById('q-text').textContent=q.question_text;
+  document.getElementById('q-exp').style.display='none';
+  const opts=document.getElementById('q-opts');opts.innerHTML='';
+  ['A','B','C','D'].forEach((lt,i)=>{
+    const vals=[q.option_a,q.option_b,q.option_c,q.option_d];
+    const btn=document.createElement('button');btn.className='opt';
+    btn.innerHTML=`<div class="opt-let">${lt}</div>${vals[i]}`;
+    btn.onclick=()=>pickAns(lt,q);opts.appendChild(btn);
+  });
+  done=false;const nb=document.getElementById('btn-nxt');nb.disabled=true;nb.textContent='Select an answer';
+}
+function pickAns(lt,q){
+  if(done)return;done=true;
+  document.querySelectorAll('.opt').forEach(b=>{const l=b.querySelector('.opt-let').textContent;if(l===q.correct_option)b.classList.add('ok');else if(l===lt&&lt!==q.correct_option)b.classList.add('no');});
+  if(lt===q.correct_option){score++;toast('✅ Correct!');}else toast('❌ Wrong');
+  if(q.explanation){document.getElementById('q-exptext').textContent=q.explanation;document.getElementById('q-exp').style.display='block';}
+  ans.push({question_id:q.id,selected_option:lt,is_correct:lt===q.correct_option});
+  const nb=document.getElementById('btn-nxt');nb.disabled=false;nb.textContent=qi<qs.length-1?'Next →':'See Results 🎯';
+}
+function nextQ(){if(!done)return;qi++;if(qi>=qs.length){endQuiz();return;}renderQ();}
+async function endQuiz(){
+  clearInterval(tmr);const sec=Math.round((Date.now()-t0)/1000);const acc=Math.round((score/qs.length)*100);
+  await post('user_attempts',{user_id:user.id,quiz_id:qs[0].quiz_id,score,total_questions:qs.length,accuracy_pct:acc,time_taken_sec:sec});
+  const em=score>=8?'🏆':score>=6?'🎉':score>=4?'💪':'📚';
+  const ttl=score>=8?'Outstanding!':score>=6?'Great Job!':score>=4?'Keep Practicing!':'Keep Going!';
+  document.getElementById('r-emoji').textContent=em;document.getElementById('r-title').textContent=ttl;
+  document.getElementById('r-score').textContent=score;document.getElementById('r-acc').textContent=acc+'%';
+  document.getElementById('r-cor').textContent=score+'/'+qs.length;document.getElementById('r-time').textContent=sec+'s';
+  go('s-results');
+}
+function startTimer(){
+  clearInterval(tmr);
+  tmr=setInterval(()=>{tLeft--;const m=Math.floor(tLeft/60).toString().padStart(2,'0');const s=(tLeft%60).toString().padStart(2,'0');document.getElementById('q-timer').textContent=`${m}:${s}`;if(tLeft<=0){clearInterval(tmr);endQuiz();}if(tLeft<=60)document.getElementById('q-timer').style.color='#EF4444';},1000);
+}
+function quitQuiz(){if(confirm('Quit? Progress lost.')){clearInterval(tmr);go('s-home');}}
+async function loadLB(){
+  const data=await get('daily_leaderboard','?limit=20&order=rank.asc');
+  const list=document.getElementById('lb-list');
+  if(!data||!data.length){list.innerHTML='<div style="text-align:center;padding:40px;color:#64748B;">No attempts yet. Be first! 🏆</div>';return;}
+  list.innerHTML=data.map((it,i)=>{const rk=i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+it.rank;const av=(it.name||'U')[0].toUpperCase();return `<div class="lb-row"><div class="lb-rank">${rk}</div><div class="lb-av">${av}</div><div class="lb-inf"><div class="lb-nm">${it.name||'Aspirant'}</div><div class="lb-ex">${it.exam_target||'UPSC'}</div></div><div class="lb-sc"><div class="lb-sv">${it.score}/${it.total_questions||10}</div><div class="lb-sa">${it.accuracy_pct||0}%</div></div></div>`;}).join('');
+}
+async function loadProfile(){
+  if(!profile)return;
+  const av=(profile.name||'U')[0].toUpperCase();
+  document.getElementById('pf-av').textContent=av;document.getElementById('pf-nm').textContent=profile.name||'Aspirant';document.getElementById('pf-em').textContent=user?.email||'';
+  const attempts=await get('user_attempts',`?user_id=eq.${user.id}`);
+  if(attempts&&attempts.length>0){const avg=attempts.reduce((s,a)=>s+parseFloat(a.accuracy_pct||0),0)/attempts.length;document.getElementById('pf-days').textContent=attempts.length;document.getElementById('pf-acc').textContent=Math.round(avg)+'%';document.getElementById('pf-qz').textContent=attempts.length;}
+}
+function shareScore(){
+  const sc=document.getElementById('r-score').textContent;const ac=document.getElementById('r-acc').textContent;
+  const txt=`🎯 I scored ${sc}/10 (${ac}) on today's Micro Mock quiz!\n\nPreparing daily for my government exam 💪\n\nJoin me: https://zeet3283.github.io/Micro-Mock/`;
+  if(navigator.share)navigator.share({title:'My Score',text:txt});else{navigator.clipboard.writeText(txt);toast('Copied! Share it 📤');}
+}
+setTimeout(()=>{init();},1500);
+setTimeout(()=>{if(document.getElementById('s-splash').classList.contains('active')){go('s-login');}},3000);
+</script>
+</body>
+  </html>                                                                
