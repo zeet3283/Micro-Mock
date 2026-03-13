@@ -139,15 +139,10 @@ var h=location.hash;
 if(h.includes('access_token')){
   var p=new URLSearchParams(h.slice(1));
   var tk=p.get('access_token');
-  if(tk){localStorage.setItem('mm_tk',tk);location.hash='';}
-}
-if(localStorage.getItem('mm_tk')){
-  setTimeout(function(){init();},100);
-} else {
-  setTimeout(function(){
-    document.querySelectorAll('.screen').forEach(function(s){s.style.display='none';});
-    document.getElementById('s-login').style.display='flex';
-  },1500);
+  if(tk){
+    localStorage.setItem('mm_tk',tk);
+    history.replaceState(null,'',location.pathname);
+  }
 }
   </script>
   <div class="splash-logo">⚡</div>
