@@ -1,233 +1,530 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Micro Mock</title>
+<!DOCTYPE html><html><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="#4F46E5"/><meta name="apple-mobile-web-app-capable" content="yes"/><title>Micro Mock</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui,sans-serif;background:#0F172A;color:#fff;min-height:100vh}
-.pg{display:none;min-height:100vh;flex-direction:column;align-items:center;justify-content:center;padding:24px}
-.pg.on{display:flex}
-/* splash */
-#pg-splash{background:linear-gradient(135deg,#0F172A,#1E1B4B,#065F46);text-align:center}
-.sp-ico{font-size:64px;margin-bottom:16px}.sp-t{font-size:32px;font-weight:900}.sp-s{font-size:14px;color:#94A3B8;margin-top:8px}
-/* login */
-#pg-login{background:linear-gradient(135deg,#0F172A,#1E1B4B)}
-.card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:36px 24px;width:100%;max-width:340px;text-align:center}
-.card-ico{font-size:52px;margin-bottom:14px}.card-t{font-size:26px;font-weight:900;margin-bottom:6px}
-.card-s{color:#94A3B8;font-size:13px;line-height:1.6;margin-bottom:28px}
-.btn-g{background:#fff;color:#333;border:none;border-radius:12px;padding:15px;font-size:15px;font-weight:700;width:100%;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none}
-.feats{margin-top:20px;text-align:left;display:flex;flex-direction:column;gap:8px}
-.feat{font-size:13px;color:#94A3B8}
-/* onboard */
-#pg-onboard{background:linear-gradient(135deg,#0F172A,#1E1B4B)}
-.ob-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:32px 24px;width:100%;max-width:340px}
-.ob-t{font-size:22px;font-weight:900;margin-bottom:6px}.ob-s{font-size:13px;color:#94A3B8;margin-bottom:20px}
-input{background:#1E293B;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:14px;font-size:14px;color:#fff;width:100%;margin-bottom:16px;outline:none}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:system-ui,sans-serif;background:#0A0F1E;color:#fff;min-height:100vh;overflow-x:hidden}
+.pg{display:none;min-height:100vh;flex-direction:column}.pg.on{display:flex}
+
+/* SPLASH */
+#sp{background:#0A0F1E;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden}
+.sp-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(79,70,229,.4) 0%,transparent 70%),radial-gradient(ellipse at 80% 100%,rgba(5,150,105,.3) 0%,transparent 60%)}
+.sp-wrap{position:relative;z-index:1}
+.sp-logo{width:90px;height:90px;background:linear-gradient(135deg,#4F46E5,#059669);border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:44px;margin:0 auto 20px;box-shadow:0 20px 60px rgba(79,70,229,.5);animation:float 2s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.sp-t{font-size:36px;font-weight:900;letter-spacing:-1px;background:linear-gradient(135deg,#fff,#A5F3FC);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sp-s{font-size:14px;color:#64748B;margin-top:8px;letter-spacing:.5px}
+.sp-dots{display:flex;gap:8px;justify-content:center;margin-top:40px}
+.sp-dot{width:8px;height:8px;border-radius:50%;background:#1E293B;animation:dot 1.4s ease-in-out infinite}
+.sp-dot:nth-child(1){background:#4F46E5;animation-delay:0s}
+.sp-dot:nth-child(2){animation-delay:.2s}
+.sp-dot:nth-child(3){animation-delay:.4s}
+@keyframes dot{0%,80%,100%{transform:scale(1);background:#1E293B}40%{transform:scale(1.4);background:#4F46E5}}
+
+/* LOGIN */
+#lg{background:#0A0F1E;align-items:center;justify-content:center;padding:24px;position:relative;overflow:hidden}
+#lg::before{content:'';position:absolute;top:-200px;left:-200px;width:500px;height:500px;background:radial-gradient(circle,rgba(79,70,229,.15),transparent 70%);pointer-events:none}
+#lg::after{content:'';position:absolute;bottom:-200px;right:-200px;width:500px;height:500px;background:radial-gradient(circle,rgba(5,150,105,.1),transparent 70%);pointer-events:none}
+.lg-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:28px;padding:40px 28px;width:100%;max-width:360px;text-align:center;backdrop-filter:blur(20px);position:relative;z-index:1}
+.lg-badge{background:linear-gradient(135deg,rgba(79,70,229,.2),rgba(5,150,105,.2));border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:6px 16px;font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#A5F3FC;display:inline-block;margin-bottom:20px}
+.lg-ico{font-size:56px;margin-bottom:16px;display:block}
+.lg-t{font-size:28px;font-weight:900;letter-spacing:-1px;margin-bottom:8px}
+.lg-s{color:#64748B;font-size:13px;line-height:1.7;margin-bottom:28px}
+.btn-g{background:#fff;color:#1a1a1a;border:none;border-radius:14px;padding:16px;font-size:15px;font-weight:700;width:100%;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;transition:transform .1s,box-shadow .1s}
+.btn-g:active{transform:scale(.98)}
+.lg-feats{margin-top:28px;display:flex;flex-direction:column;gap:12px;text-align:left}
+.lf{display:flex;align-items:center;gap:12px;font-size:13px;color:#94A3B8}
+.lf-ic{width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+
+/* ONBOARD */
+#ob{background:#0A0F1E;align-items:center;justify-content:center;padding:24px}
+.ob-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:28px;padding:36px 24px;width:100%;max-width:360px}
+.ob-t{font-size:24px;font-weight:900;margin-bottom:6px}
+.ob-s{font-size:13px;color:#64748B;margin-bottom:24px;line-height:1.6}
+input{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px;font-size:15px;color:#fff;width:100%;margin-bottom:16px;outline:none;transition:border .2s}
 input:focus{border-color:#4F46E5}
-.eg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
-.eb{background:#1E293B;border:2px solid transparent;border-radius:12px;padding:14px 10px;text-align:center;cursor:pointer;font-size:13px;font-weight:700;color:#fff}
-.eb.sel{border-color:#4F46E5;background:#1E1B4B}
-.eb-i{font-size:24px;margin-bottom:4px}
-/* home */
-#pg-home{background:#0F172A;align-items:stretch;justify-content:flex-start;padding:0}
-.nav{background:#1E293B;border-bottom:1px solid rgba(255,255,255,.08);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
-.nav-l{font-size:18px;font-weight:900;color:#A5F3FC}
-.av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#4F46E5,#059669);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;cursor:pointer}
-.hbody{flex:1;padding:20px 20px 90px;overflow-y:auto;width:100%}
-.hero{background:linear-gradient(135deg,#1E1B4B,#065F46);border-radius:16px;padding:24px;margin-bottom:20px}
-.hero-tag{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#A5F3FC;margin-bottom:8px}
-.hero-t{font-size:22px;font-weight:900;margin-bottom:4px}.hero-s{font-size:13px;color:#94A3B8;margin-bottom:20px}
-.btn-main{background:linear-gradient(135deg,#4F46E5,#059669);color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;width:100%;cursor:pointer}
-.btn-main:disabled{opacity:.5}
-.srow{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
-.sbox{background:#1E293B;border-radius:12px;padding:14px;text-align:center}
-.sn{font-size:22px;font-weight:800;color:#A5F3FC}.sl{font-size:10px;color:#64748B;margin-top:2px;text-transform:uppercase}
-.sec-t{font-size:15px;font-weight:700;margin-bottom:12px}
-.sg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.sc{background:#1E293B;border-radius:12px;padding:14px;display:flex;align-items:center;gap:10px;cursor:pointer}
-.bnav{background:#1E293B;border-top:1px solid rgba(255,255,255,.08);display:flex;position:fixed;bottom:0;left:0;right:0;z-index:50}
-.bn{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:3px;cursor:pointer;color:#64748B;font-size:10px;font-weight:600}
-.bn.on{color:#A5F3FC}.bn-i{font-size:20px}
-/* quiz */
-#pg-quiz{background:#0F172A;align-items:stretch;justify-content:flex-start;padding:0}
-.qbody{flex:1;padding:20px 20px 100px;overflow-y:auto;width:100%}
-.pbar{background:#1E293B;border-radius:6px;height:6px;margin-bottom:20px;overflow:hidden}
-.pfill{height:100%;background:linear-gradient(90deg,#4F46E5,#A5F3FC);border-radius:6px;transition:width .4s}
-.qmeta{display:flex;justify-content:space-between;font-size:12px;color:#64748B;font-weight:600;margin-bottom:14px}
-.qt{font-size:18px;font-weight:700;line-height:1.5;margin-bottom:24px;color:#F1F5F9}
-.opts{display:flex;flex-direction:column;gap:12px}
-.opt{background:#1E293B;border:2px solid transparent;border-radius:12px;padding:16px;font-size:14px;font-weight:600;color:#E2E8F0;cursor:pointer;text-align:left;display:flex;align-items:center;gap:12px}
-.opt.ok{border-color:#059669;background:#064E3B;color:#6EE7B7}
-.opt.no{border-color:#DC2626;background:#450A0A;color:#FCA5A5}
-.ol{width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
-.exp{background:#1E293B;border-left:3px solid #059669;border-radius:0 10px 10px 0;padding:14px;margin-top:16px;font-size:13px;color:#94A3B8;line-height:1.6;display:none}
-.exp b{color:#6EE7B7;display:block;margin-bottom:4px}
-.qfoot{position:fixed;bottom:0;left:0;right:0;background:#0F172A;border-top:1px solid rgba(255,255,255,.08);padding:16px 20px 28px}
-.btn-nxt{background:#4F46E5;color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;width:100%}
-.btn-nxt:disabled{opacity:.3;cursor:not-allowed}
-/* results */
-#pg-res{background:linear-gradient(135deg,#0F172A,#1E1B4B)}
-.rcard{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:32px 24px;width:100%;max-width:360px;text-align:center}
-.re{font-size:56px;margin-bottom:10px}.rt{font-size:24px;font-weight:900;margin-bottom:4px}.rs{color:#94A3B8;font-size:13px;margin-bottom:20px}
-.ring{width:110px;height:110px;border-radius:50%;background:linear-gradient(135deg,#4F46E5,#059669);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 20px}
-.rn{font-size:34px;font-weight:900}.rd{font-size:12px;opacity:.8}
+.eg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px}
+.eb{background:rgba(255,255,255,.04);border:2px solid rgba(255,255,255,.08);border-radius:16px;padding:18px 10px;text-align:center;cursor:pointer;transition:all .2s}
+.eb:active{transform:scale(.96)}
+.eb.sel{border-color:#4F46E5;background:rgba(79,70,229,.15)}
+.eb-i{font-size:28px;margin-bottom:8px}
+.eb-t{font-size:13px;font-weight:700}
+
+/* SHARED */
+.bm{background:linear-gradient(135deg,#4F46E5,#059669);color:#fff;border:none;border-radius:14px;padding:16px;font-size:15px;font-weight:700;width:100%;cursor:pointer;transition:opacity .2s,transform .1s;position:relative;overflow:hidden}
+.bm::after{content:'';position:absolute;inset:0;background:linear-gradient(rgba(255,255,255,.1),transparent);pointer-events:none}
+.bm:active{transform:scale(.98);opacity:.9}
+.bm:disabled{opacity:.4;cursor:not-allowed}
+.bm.ghost{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)}
+
+/* NAVBAR */
+.nb{background:rgba(10,15,30,.9);border-bottom:1px solid rgba(255,255,255,.06);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;backdrop-filter:blur(20px)}
+.nl{font-size:18px;font-weight:900;background:linear-gradient(135deg,#A5F3FC,#6EE7B7);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#4F46E5,#059669);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 4px 12px rgba(79,70,229,.4)}
+
+/* BOTTOM NAV */
+.bnv{background:rgba(10,15,30,.95);border-top:1px solid rgba(255,255,255,.06);display:flex;position:fixed;bottom:0;left:0;right:0;backdrop-filter:blur(20px);padding-bottom:env(safe-area-inset-bottom)}
+.bn{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:4px;cursor:pointer;color:#334155;font-size:10px;font-weight:700;transition:color .2s}
+.bn.on{color:#A5F3FC}.bn-i{font-size:22px}
+
+/* HOME */
+#hm{background:#0A0F1E}
+.hbody{flex:1;padding:20px 20px 100px;overflow-y:auto}
+.hero{background:linear-gradient(135deg,#1a1040,#0d3320);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:24px;margin-bottom:20px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;background:radial-gradient(circle,rgba(79,70,229,.3),transparent 70%)}
+.hero::after{content:'';position:absolute;bottom:-40px;left:20px;width:140px;height:140px;background:radial-gradient(circle,rgba(5,150,105,.2),transparent 70%)}
+.hero-tag{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#A5F3FC;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.hero-dot{width:6px;height:6px;border-radius:50%;background:#A5F3FC;animation:pulse2 1.5s ease-in-out infinite}
+@keyframes pulse2{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
+.hero-t{font-size:24px;font-weight:900;margin-bottom:6px;line-height:1.2;position:relative;z-index:1}
+.hero-s{font-size:13px;color:#94A3B8;margin-bottom:20px;position:relative;z-index:1}
+.hero-meta{display:flex;gap:12px;margin-bottom:20px;position:relative;z-index:1}
+.hm-pill{background:rgba(255,255,255,.08);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;color:#94A3B8}
+.sc-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+.sc-box{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:16px;text-align:center;transition:transform .2s}
+.sc-box:active{transform:scale(.96)}
+.sc-n{font-size:24px;font-weight:900;background:linear-gradient(135deg,#A5F3FC,#6EE7B7);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sc-l{font-size:10px;color:#475569;margin-top:3px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.sec-t{font-size:16px;font-weight:800;margin-bottom:14px;color:#E2E8F0}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
+.sc2{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .2s}
+.sc2:active{transform:scale(.97);border-color:rgba(79,70,229,.4)}
+.sc2-i{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.quote-card{background:linear-gradient(135deg,rgba(79,70,229,.1),rgba(5,150,105,.1));border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;margin-bottom:24px}
+.quote-t{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#64748B;margin-bottom:8px}
+.quote-text{font-size:14px;color:#CBD5E1;line-height:1.6;font-style:italic}
+.quote-auth{font-size:12px;color:#64748B;margin-top:6px}
+
+/* INSTALL BANNER */
+.install-banner{background:linear-gradient(135deg,rgba(79,70,229,.2),rgba(5,150,105,.2));border:1px solid rgba(79,70,229,.3);border-radius:14px;padding:14px 16px;margin-bottom:20px;display:flex;align-items:center;gap:12px;cursor:pointer}
+.ib-ico{font-size:28px;flex-shrink:0}
+.ib-t{font-size:13px;font-weight:700;color:#A5B4FC;margin-bottom:2px}
+.ib-s{font-size:11px;color:#6366F1}
+.ib-btn{background:#4F46E5;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;white-space:nowrap}
+
+/* QUIZ */
+#qz{background:#0A0F1E}
+.qbody{flex:1;padding:20px 20px 100px;overflow-y:auto}
+.pbar{background:rgba(255,255,255,.06);border-radius:8px;height:6px;margin-bottom:24px;overflow:hidden}
+.pfill{height:100%;background:linear-gradient(90deg,#4F46E5,#A5F3FC);border-radius:8px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.qmeta{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.qctr{font-size:13px;font-weight:700;color:#A5F3FC;background:rgba(79,70,229,.15);padding:5px 12px;border-radius:20px}
+.qtmr-wrap{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:20px;padding:5px 14px;display:flex;align-items:center;gap:6px}
+.qtmr-dot{width:6px;height:6px;border-radius:50%;background:#F59E0B;animation:pulse2 1s ease-in-out infinite}
+.qt{font-size:19px;font-weight:700;line-height:1.55;margin-bottom:28px;color:#F1F5F9}
+.opts{display:flex;flex-direction:column;gap:14px}
+.opt{background:rgba(255,255,255,.04);border:2px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;font-size:15px;font-weight:600;color:#CBD5E1;cursor:pointer;text-align:left;display:flex;align-items:center;gap:14px;transition:all .2s;width:100%}
+.opt:active{transform:scale(.98)}
+.opt.ok{border-color:#059669;background:rgba(5,150,105,.15);color:#6EE7B7}
+.opt.no{border-color:#DC2626;background:rgba(220,38,38,.15);color:#FCA5A5}
+.ol{width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;transition:all .2s}
+.opt.ok .ol{background:#059669;color:#fff}
+.opt.no .ol{background:#DC2626;color:#fff}
+.exp{background:rgba(5,150,105,.08);border:1px solid rgba(5,150,105,.2);border-radius:14px;padding:16px;margin-top:16px;font-size:13px;color:#94A3B8;line-height:1.7;display:none}
+.exp b{color:#6EE7B7;display:block;margin-bottom:6px;font-size:14px}
+.qfoot{position:fixed;bottom:0;left:0;right:0;background:rgba(10,15,30,.95);border-top:1px solid rgba(255,255,255,.06);padding:16px 20px 28px;backdrop-filter:blur(20px)}
+
+/* RESULTS */
+#rs{background:#0A0F1E;align-items:center;justify-content:center;padding:24px;position:relative;overflow:hidden}
+.confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:100}
+.conf{position:absolute;width:10px;height:10px;border-radius:2px;animation:conffall linear forwards}
+@keyframes conffall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+.res-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:28px;padding:32px 24px;width:100%;max-width:380px;text-align:center;position:relative;z-index:1}
+.re{font-size:64px;margin-bottom:8px;display:block;animation:pop .5s cubic-bezier(.36,.07,.19,.97)}
+@keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+.rt{font-size:26px;font-weight:900;letter-spacing:-1px;margin-bottom:4px}
+.rs2{color:#64748B;font-size:13px;margin-bottom:20px}
+.ring{width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,#4F46E5,#059669);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 20px 60px rgba(79,70,229,.4)}
+.rn{font-size:38px;font-weight:900}.rd{font-size:12px;opacity:.8}
+.beat-bar{background:linear-gradient(135deg,rgba(79,70,229,.15),rgba(5,150,105,.15));border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px;margin-bottom:16px}
+.beat-t{font-size:22px;font-weight:900;color:#A5F3FC;margin-bottom:2px}
+.beat-s{font-size:12px;color:#64748B}
 .rstats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
-.rst{background:rgba(255,255,255,.05);border-radius:10px;padding:12px}
-.rsn{font-size:18px;font-weight:800;color:#A5F3FC}.rsl{font-size:10px;color:#64748B;margin-top:2px}
-.pop{background:linear-gradient(135deg,#1E1B4B,#312E81);border:1px solid #6366F1;border-radius:12px;padding:16px;margin-bottom:14px}
-.pop-t{font-size:13px;font-weight:700;color:#A5B4FC;margin-bottom:4px}
-.pop-s{font-size:12px;color:#818CF8;margin-bottom:12px}
-.btn-pro{background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;width:100%}
-.btn-sh{background:linear-gradient(135deg,#059669,#065F46);color:#fff;border:none;border-radius:12px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-bottom:10px}
-.btn-bk{background:rgba(255,255,255,.08);color:#fff;border:none;border-radius:12px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;width:100%}
-/* leaderboard */
-#pg-lb{background:#0F172A;align-items:stretch;justify-content:flex-start;padding:0}
-.lbody{flex:1;padding:20px 20px 90px;overflow-y:auto;width:100%}
-.lbh{background:linear-gradient(135deg,#1E1B4B,#065F46);border-radius:16px;padding:20px;margin-bottom:20px;text-align:center}
-.lbh h2{font-size:20px;font-weight:900;margin-bottom:4px}.lbh p{font-size:12px;color:#94A3B8}
-.lbl{display:flex;flex-direction:column;gap:10px}
-.lbr{background:#1E293B;border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px}
-.lbrk{width:32px;font-size:16px;font-weight:900;text-align:center;flex-shrink:0}
-.lbav{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#4F46E5,#059669);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0}
-.lbi{flex:1}.lbn{font-size:14px;font-weight:700}.lbe{font-size:11px;color:#64748B}
-.lbs{text-align:right}.lbsv{font-size:16px;font-weight:800;color:#A5F3FC}.lbsa{font-size:11px;color:#64748B}
-/* profile */
-#pg-prof{background:#0F172A;align-items:stretch;justify-content:flex-start;padding:0}
-.pbody{flex:1;padding:20px 20px 90px;overflow-y:auto;width:100%}
-.ph{background:linear-gradient(135deg,#0F172A,#1E3A5F);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:24px;margin-bottom:16px;text-align:center}
-.pav{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#4F46E5,#059669);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;margin:0 auto 12px}
-.pnm{font-size:20px;font-weight:900;margin-bottom:2px}.pem{font-size:12px;color:#64748B;margin-bottom:12px}
-.pbdg{display:inline-flex;align-items:center;gap:6px;background:rgba(79,70,229,.2);border:1px solid rgba(79,70,229,.4);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;color:#A5B4FC}
-.popc{background:linear-gradient(135deg,#0F172A,#1E3A5F);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:20px;margin-bottom:16px;position:relative;overflow:hidden}
-.poplk{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;font-size:40px;backdrop-filter:blur(3px);border-radius:14px}
-.popt{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#64748B;margin-bottom:12px}
-.popst{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
-.pops{background:rgba(255,255,255,.05);border-radius:8px;padding:10px;text-align:center}
-.popsn{font-size:18px;font-weight:800;color:#A5F3FC}.popsl{font-size:9px;color:#64748B;text-transform:uppercase}
-.upc{background:linear-gradient(135deg,#1E1B4B,#312E81);border:1px solid #6366F1;border-radius:14px;padding:20px;margin-bottom:14px}
-.upt{font-size:16px;font-weight:800;color:#A5B4FC;margin-bottom:4px}.ups{font-size:12px;color:#818CF8;margin-bottom:14px;line-height:1.5}
-.upf{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}.uf{font-size:12px;color:#C7D2FE}
-.btn-up{background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;width:100%;margin-bottom:10px}
-.btn-out{background:rgba(220,38,38,.15);color:#FCA5A5;border:1px solid rgba(220,38,38,.3);border-radius:12px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;width:100%}
-/* toast */
-.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1E293B;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:12px 20px;font-size:13px;font-weight:600;z-index:999;opacity:1;transition:opacity .3s;pointer-events:none;white-space:nowrap}
-.toast.hide{opacity:0}
+.rst{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:14px}
+.rsn{font-size:20px;font-weight:900;color:#A5F3FC}.rsl{font-size:10px;color:#475569;margin-top:2px;font-weight:700;text-transform:uppercase}
+.pop-tease{background:linear-gradient(135deg,#1E1B4B,#312E81);border:1px solid rgba(99,102,241,.4);border-radius:16px;padding:18px;margin-bottom:16px;position:relative;overflow:hidden}
+.pop-tease::before{content:'';position:absolute;top:-30px;right:-30px;width:100px;height:100px;background:radial-gradient(circle,rgba(99,102,241,.3),transparent)}
+.pt-badge{background:rgba(245,158,11,.2);border:1px solid rgba(245,158,11,.3);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700;color:#FCD34D;display:inline-block;margin-bottom:10px;letter-spacing:.5px}
+.pt-t{font-size:15px;font-weight:800;color:#A5B4FC;margin-bottom:6px}
+.pt-s{font-size:12px;color:#818CF8;margin-bottom:14px;line-height:1.6}
+.btn-pro{background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;border:none;border-radius:12px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;width:100%;position:relative;overflow:hidden}
+.btn-pro::after{content:'✨';position:absolute;right:16px;top:50%;transform:translateY(-50%)}
+
+/* LEADERBOARD */
+#lb{background:#0A0F1E}
+.lbody{flex:1;padding:20px 20px 100px;overflow-y:auto}
+.lbh{background:linear-gradient(135deg,#1a1040,#0d3320);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:20px;margin-bottom:20px;text-align:center}
+.lbh h2{font-size:22px;font-weight:900;letter-spacing:-1px;margin-bottom:4px}
+.lbh p{font-size:12px;color:#64748B}
+.lbl{display:flex;flex-direction:column;gap:12px}
+.lbr{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;transition:all .2s}
+.lbr.me{border-color:rgba(79,70,229,.4);background:rgba(79,70,229,.08)}
+.lbrk{width:36px;font-size:18px;font-weight:900;text-align:center;flex-shrink:0}
+.lbav{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#4F46E5,#059669);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0}
+.lbi{flex:1}.lbn{font-size:14px;font-weight:700}.lbe{font-size:11px;color:#475569;margin-top:1px}
+.lbs{text-align:right}.lbsv{font-size:17px;font-weight:900;color:#A5F3FC}.lbsa{font-size:11px;color:#475569;margin-top:1px}
+
+/* PROFILE */
+#pf{background:#0A0F1E}
+.pbody{flex:1;padding:20px 20px 100px;overflow-y:auto}
+.ph{background:linear-gradient(135deg,#0d1a2e,#0d1a0d);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:28px 24px;margin-bottom:20px;text-align:center;position:relative;overflow:hidden}
+.ph::before{content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:200px;height:200px;background:radial-gradient(circle,rgba(79,70,229,.2),transparent)}
+.pav{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#4F46E5,#059669);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;margin:0 auto 14px;box-shadow:0 8px 32px rgba(79,70,229,.4);position:relative;z-index:1}
+.pnm{font-size:22px;font-weight:900;margin-bottom:3px;position:relative;z-index:1}
+.pem{font-size:12px;color:#475569;margin-bottom:14px;position:relative;z-index:1}
+.pbdg{display:inline-flex;align-items:center;gap:6px;background:rgba(79,70,229,.15);border:1px solid rgba(79,70,229,.3);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;color:#A5B4FC;position:relative;z-index:1}
+.pop-preview{background:linear-gradient(135deg,#0d1530,#0d2518);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:20px;margin-bottom:20px;position:relative;overflow:hidden}
+.pop-preview-blur{position:absolute;inset:0;backdrop-filter:blur(6px);background:rgba(0,0,0,.6);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border-radius:20px;z-index:2}
+.pop-lock-ico{font-size:36px}
+.pop-lock-t{font-size:14px;font-weight:700;color:#fff;text-align:center}
+.pop-lock-s{font-size:12px;color:#94A3B8;text-align:center;max-width:200px;line-height:1.5}
+.btn-unlock{background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;border:none;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer}
+.pop-inner{position:relative;z-index:1}
+.pop-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.pop-av{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#4F46E5,#059669);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900}
+.pop-nm{font-size:16px;font-weight:800}
+.pop-ex{font-size:11px;color:#64748B;margin-top:2px}
+.pop-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.pops{background:rgba(255,255,255,.06);border-radius:12px;padding:12px;text-align:center}
+.popsn{font-size:20px;font-weight:900;color:#A5F3FC}.popsl{font-size:9px;color:#475569;text-transform:uppercase;margin-top:2px}
+.pop-bar-row{margin-bottom:8px}
+.pop-bar-label{display:flex;justify-content:space-between;font-size:11px;color:#64748B;margin-bottom:4px}
+.pop-bar-label span:last-child{color:#A5F3FC;font-weight:700}
+.pop-bar-bg{background:rgba(255,255,255,.06);border-radius:4px;height:5px}
+.pop-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#4F46E5,#A5F3FC)}
+.pop-footer{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.06);font-size:12px;color:#475569}
+.pop-ready{color:#A5F3FC;font-weight:700}
+.upc{background:linear-gradient(135deg,#1E1B4B,#312E81);border:1px solid rgba(99,102,241,.3);border-radius:20px;padding:24px;margin-bottom:16px}
+.upt{font-size:18px;font-weight:900;color:#A5B4FC;margin-bottom:6px;letter-spacing:-.5px}
+.ups{font-size:13px;color:#818CF8;margin-bottom:16px;line-height:1.6}
+.upf{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.uf{font-size:13px;color:#C7D2FE;display:flex;align-items:center;gap:8px}
+.uf::before{content:'✓';color:#6EE7B7;font-weight:900}
+.btn-out{background:rgba(220,38,38,.08);color:#FCA5A5;border:1px solid rgba(220,38,38,.2);border-radius:14px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;width:100%}
+
+/* TOAST */
+.toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-80px);background:rgba(30,41,59,.95);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:12px 20px;font-size:13px;font-weight:600;z-index:999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;backdrop-filter:blur(20px);box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.toast.show{transform:translateX(-50%) translateY(0)}
 </style></head><body>
-<div class="toast hide" id="toast"></div>
+<div class="toast" id="toast"></div>
+
 <!-- SPLASH -->
-<div class="pg on" id="pg-splash"><div class="sp-ico">⚡</div><div class="sp-t">Micro Mock</div><div class="sp-s">Daily MCQ · UPSC · SSC · Banking</div></div>
+<div class="pg on" id="sp">
+<div class="sp-bg"></div>
+<div class="sp-wrap">
+<div class="sp-logo">⚡</div>
+<div class="sp-t">Micro Mock</div>
+<div class="sp-s">UPSC · SSC · Banking · RBI</div>
+<div class="sp-dots"><div class="sp-dot"></div><div class="sp-dot"></div><div class="sp-dot"></div></div>
+</div></div>
+
 <!-- LOGIN -->
-<div class="pg" id="pg-login"><div class="card"><div class="card-ico">🎯</div><div class="card-t">Micro Mock</div><div class="card-s">Daily 10-question quizzes to crack your government exam. Free to start.</div><a class="btn-g" href="https://xkijsokwttuypxcgppbe.supabase.co/auth/v1/authorize?provider=google&redirect_to=https://zeet3283.github.io/Micro-Mock/"><svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>Continue with Google</a><div class="feats"><div class="feat">⚡ 10 fresh MCQs every day</div><div class="feat">🏆 Compete on leaderboard</div><div class="feat">📊 Track your readiness</div><div class="feat">🆓 Always free to start</div></div></div></div>
+<div class="pg" id="lg">
+<div class="lg-card">
+<div class="lg-badge">🇮🇳 Made for Indian Aspirants</div>
+<span class="lg-ico">🎯</span>
+<div class="lg-t">Micro Mock</div>
+<div class="lg-s">Daily 10-question quizzes designed to crack UPSC, SSC & Banking exams. Prove your preparation.</div>
+<a class="btn-g" href="https://xkijsokwttuypxcgppbe.supabase.co/auth/v1/authorize?provider=google&redirect_to=https://zeet3283.github.io/Micro-Mock/"><svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>Continue with Google</a>
+<div class="lg-feats">
+<div class="lf"><div class="lf-ic">⚡</div>10 fresh MCQs every single day</div>
+<div class="lf"><div class="lf-ic">🏆</div>Ranked leaderboard — see where you stand</div>
+<div class="lf"><div class="lf-ic">🪪</div>PoP Card — share your preparation proof</div>
+<div class="lf"><div class="lf-ic">🆓</div>Free forever — upgrade when you're ready</div>
+</div></div></div>
+
 <!-- ONBOARD -->
-<div class="pg" id="pg-onboard"><div class="ob-card"><div class="ob-t">Welcome! 🎉</div><div class="ob-s">Set up your profile to personalise your daily quizzes.</div><input id="ob-name" placeholder="Your full name" type="text"/><div style="font-size:13px;font-weight:700;color:#94A3B8;margin-bottom:12px;">Target Exam</div><div class="eg"><div class="eb" onclick="pEx(this,'UPSC')"><div class="eb-i">🏛️</div>UPSC</div><div class="eb" onclick="pEx(this,'SSC')"><div class="eb-i">📋</div>SSC</div><div class="eb" onclick="pEx(this,'Banking')"><div class="eb-i">🏦</div>Banking</div><div class="eb" onclick="pEx(this,'RBI')"><div class="eb-i">💰</div>RBI</div></div><button class="btn-main" onclick="fOb()">Start Practicing →</button></div></div>
+<div class="pg" id="ob" style="justify-content:center">
+<div class="ob-card">
+<div class="ob-t">Welcome! 🎉</div>
+<div class="ob-s">One quick setup to personalise your daily practice quizzes.</div>
+<input id="obn" placeholder="Your full name" type="text"/>
+<div style="font-size:13px;font-weight:700;color:#475569;margin-bottom:14px;text-transform:uppercase;letter-spacing:.5px">Target Exam</div>
+<div class="eg">
+<div class="eb" onclick="pEx(this,'UPSC')"><div class="eb-i">🏛️</div><div class="eb-t">UPSC</div></div>
+<div class="eb" onclick="pEx(this,'SSC')"><div class="eb-i">📋</div><div class="eb-t">SSC</div></div>
+<div class="eb" onclick="pEx(this,'Banking')"><div class="eb-i">🏦</div><div class="eb-t">Banking</div></div>
+<div class="eb" onclick="pEx(this,'RBI')"><div class="eb-i">💰</div><div class="eb-t">RBI</div></div>
+</div>
+<button class="bm" onclick="fOb()">Start Practicing →</button>
+</div></div>
+
 <!-- HOME -->
-<div class="pg" id="pg-home"><div class="nav"><div class="nav-l">⚡ Micro Mock</div><div class="av" id="hav" onclick="go('pg-prof')">U</div></div><div class="hbody"><div class="hero"><div class="hero-tag">📅 Today's Challenge</div><div class="hero-t" id="htitle">Daily Quiz</div><div class="hero-s" id="hsub">10 questions · 10 minutes</div><button class="btn-main" id="btn-sq" onclick="bQuiz()">Start Today's Quiz →</button></div><div class="srow"><div class="sbox"><div class="sn" id="hstreak">0</div><div class="sl">Streak</div></div><div class="sbox"><div class="sn" id="hacc">0%</div><div class="sl">Accuracy</div></div><div class="sbox"><div class="sn" id="hrank">#--</div><div class="sl">Rank</div></div></div><div class="sec-t">Practice by Subject</div><div class="sg"><div class="sc" onclick="toast('Coming soon 🚀')"><span style="font-size:24px">🏛️</span><div><div style="font-size:13px;font-weight:700">GS</div><div style="font-size:11px;color:#64748B">Daily</div></div></div><div class="sc" onclick="toast('Coming soon 🚀')"><span style="font-size:24px">🧠</span><div><div style="font-size:13px;font-weight:700">Reasoning</div><div style="font-size:11px;color:#64748B">Daily</div></div></div><div class="sc" onclick="toast('Coming soon 🚀')"><span style="font-size:24px">🔢</span><div><div style="font-size:13px;font-weight:700">Quant</div><div style="font-size:11px;color:#64748B">Daily</div></div></div><div class="sc" onclick="toast('Coming soon 🚀')"><span style="font-size:24px">📰</span><div><div style="font-size:13px;font-weight:700">Current Affairs</div><div style="font-size:11px;color:#64748B">Daily</div></div></div></div></div><div class="bnav"><div class="bn on" onclick="go('pg-home')"><div class="bn-i">🏠</div>Home</div><div class="bn" onclick="go('pg-lb')"><div class="bn-i">🏆</div>Ranks</div><div class="bn" onclick="go('pg-prof')"><div class="bn-i">👤</div>Profile</div></div></div>
+<div class="pg" id="hm" style="justify-content:flex-start">
+<div class="nb"><div class="nl">⚡ Micro Mock</div><div class="av" id="hav" onclick="go('pf')">J</div></div>
+<div class="hbody">
+<div id="install-banner" class="install-banner" style="display:none" onclick="installApp()">
+<div class="ib-ico">📲</div>
+<div style="flex:1"><div class="ib-t">Add to Home Screen</div><div class="ib-s">Use like a real app — one tap access</div></div>
+<button class="ib-btn">Install</button>
+</div>
+<div class="hero">
+<div class="hero-tag"><div class="hero-dot"></div>Today's Challenge</div>
+<div class="hero-t" id="htl">Daily Quiz</div>
+<div class="hero-meta"><span class="hm-pill" id="hpill1">10 Questions</span><span class="hm-pill">10 Minutes</span></div>
+<button class="bm" id="bsq" onclick="bQz()" style="position:relative;z-index:1">Start Today's Quiz →</button>
+</div>
+<div class="sc-row">
+<div class="sc-box"><div class="sc-n" id="hst">0</div><div class="sc-l">🔥 Streak</div></div>
+<div class="sc-box"><div class="sc-n" id="hac">0%</div><div class="sc-l">🎯 Accuracy</div></div>
+<div class="sc-box"><div class="sc-n">#--</div><div class="sc-l">🏅 Rank</div></div>
+</div>
+<div class="quote-card">
+<div class="quote-t">💡 Daily Motivation</div>
+<div class="quote-text" id="quote-text">"Success is not final, failure is not fatal: it is the courage to continue that counts."</div>
+<div class="quote-auth" id="quote-auth">— Winston Churchill</div>
+</div>
+<div class="sec-t">Practice by Subject</div>
+<div class="sg">
+<div class="sc2" onclick="toast('Subject quizzes coming soon! 🚀')"><div class="sc2-i" style="background:rgba(79,70,229,.15)">🏛️</div><div><div style="font-size:13px;font-weight:700">General Studies</div><div style="font-size:11px;color:#475569;margin-top:2px">Daily</div></div></div>
+<div class="sc2" onclick="toast('Subject quizzes coming soon! 🚀')"><div class="sc2-i" style="background:rgba(245,158,11,.15)">🧠</div><div><div style="font-size:13px;font-weight:700">Reasoning</div><div style="font-size:11px;color:#475569;margin-top:2px">Daily</div></div></div>
+<div class="sc2" onclick="toast('Subject quizzes coming soon! 🚀')"><div class="sc2-i" style="background:rgba(5,150,105,.15)">🔢</div><div><div style="font-size:13px;font-weight:700">Quant</div><div style="font-size:11px;color:#475569;margin-top:2px">Daily</div></div></div>
+<div class="sc2" onclick="toast('Subject quizzes coming soon! 🚀')"><div class="sc2-i" style="background:rgba(220,38,38,.15)">📰</div><div><div style="font-size:13px;font-weight:700">Current Affairs</div><div style="font-size:11px;color:#475569;margin-top:2px">Daily</div></div></div>
+</div>
+</div>
+<div class="bnv"><div class="bn on" onclick="go('hm')"><div class="bn-i">🏠</div>Home</div><div class="bn" onclick="go('lb')"><div class="bn-i">🏆</div>Ranks</div><div class="bn" onclick="go('pf')"><div class="bn-i">👤</div>Profile</div></div>
+</div>
+
 <!-- QUIZ -->
-<div class="pg" id="pg-quiz"><div class="nav"><button onclick="qQuit()" style="background:none;border:none;color:#94A3B8;font-size:14px;cursor:pointer">✕ Quit</button><div style="font-size:13px;font-weight:700;color:#A5F3FC" id="qsubj">GS</div><div style="font-size:13px;font-weight:700;color:#F59E0B" id="qtmr">10:00</div></div><div class="qbody"><div class="pbar"><div class="pfill" id="qprog" style="width:10%"></div></div><div class="qmeta"><span style="color:#A5F3FC" id="qctr">Q1 of 10</span><span id="qdiff">Easy</span></div><div class="qt" id="qtext">Loading...</div><div class="opts" id="qopts"></div><div class="exp" id="qexp"><b>Explanation</b><span id="qexptext"></span></div></div><div class="qfoot"><button class="btn-nxt" id="btn-nxt" onclick="nxtQ()" disabled>Select an answer</button></div></div>
+<div class="pg" id="qz" style="justify-content:flex-start">
+<div class="nb">
+<button onclick="if(confirm('Quit? Progress will be lost.')){clearInterval(tmr);go('hm')}" style="background:none;border:none;color:#475569;font-size:14px;cursor:pointer;font-weight:700">✕ Quit</button>
+<div class="qctr" id="qct">Q1 / 10</div>
+<div class="qtmr-wrap"><div class="qtmr-dot"></div><span style="font-size:13px;font-weight:700;color:#F59E0B" id="qtm">10:00</span></div>
+</div>
+<div class="qbody">
+<div class="pbar"><div class="pfill" id="qpr" style="width:10%"></div></div>
+<div style="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px" id="qdf">General Studies · Easy</div>
+<div class="qt" id="qtx">Loading question...</div>
+<div class="opts" id="qop"></div>
+<div class="exp" id="qex"><b>💡 Explanation</b><span id="qxt"></span></div>
+</div>
+<div class="qfoot"><button class="bm" id="bnx" onclick="nQ()" disabled>Select an answer to continue</button></div>
+</div>
+
 <!-- RESULTS -->
-<div class="pg" id="pg-res"><div class="rcard"><div class="re" id="re">🎉</div><div class="rt" id="rt">Quiz Complete!</div><div class="rs">Here's how you did</div><div class="ring"><div class="rn" id="rscore">0</div><div class="rd">out of 10</div></div><div class="rstats"><div class="rst"><div class="rsn" id="racc">0%</div><div class="rsl">Accuracy</div></div><div class="rst"><div class="rsn" id="rcor">0</div><div class="rsl">Correct</div></div><div class="rst"><div class="rsn" id="rtime">0s</div><div class="rsl">Time</div></div></div><div class="pop"><div class="pop-t">🔒 Your PoP Card is Ready!</div><div class="pop-s">Upgrade to Pro to unlock your shareable Proof-of-Preparation card.</div><button class="btn-pro" onclick="window.open('https://rzp.io/rzp/zJ6jF8B','_blank')">Unlock Pro — ₹149/month</button></div><button class="btn-sh" onclick="sScore()">📤 Share Your Score</button><button class="btn-bk" onclick="go('pg-home')">Back to Home</button></div></div>
+<div class="pg" id="rs" style="justify-content:center">
+<div class="confetti-wrap" id="cw"></div>
+<div class="res-card">
+<span class="re" id="re">🎉</span>
+<div class="rt" id="rt">Quiz Complete!</div>
+<div class="rs2">Here's how you did today</div>
+<div class="ring"><div class="rn" id="rsc">0</div><div class="rd">out of 10</div></div>
+<div class="beat-bar"><div class="beat-t" id="beat-pct">—</div><div class="beat-s">of today's participants</div></div>
+<div class="rstats">
+<div class="rst"><div class="rsn" id="rac">0%</div><div class="rsl">Accuracy</div></div>
+<div class="rst"><div class="rsn" id="rco">0</div><div class="rsl">Correct</div></div>
+<div class="rst"><div class="rsn" id="rtm">0s</div><div class="rsl">Time</div></div>
+</div>
+<div class="pop-tease">
+<div class="pt-badge">🔒 PRO FEATURE</div>
+<div class="pt-t">Your PoP Card is being built!</div>
+<div class="pt-s">Unlock your shareable Proof-of-Preparation card and appear ranked on the leaderboard. Show your family you're serious.</div>
+<button class="btn-pro" onclick="window.open('https://rzp.io/rzp/zJ6jF8B','_blank')">Unlock Pro — ₹149/month</button>
+</div>
+<button class="bm" onclick="shareScore()" style="margin-bottom:12px">📤 Share My Score</button>
+<button class="bm ghost" onclick="go('hm')">Back to Home</button>
+</div></div>
+
 <!-- LEADERBOARD -->
-<div class="pg" id="pg-lb"><div class="nav"><div class="nav-l">🏆 Leaderboard</div><div class="av" id="lbav" onclick="go('pg-prof')">U</div></div><div class="lbody"><div class="lbh"><h2>Today's Rankings</h2><p id="lbsub">Top performers</p></div><div class="lbl" id="lblist"><div style="text-align:center;padding:40px;color:#64748B">Loading...</div></div></div><div class="bnav"><div class="bn" onclick="go('pg-home')"><div class="bn-i">🏠</div>Home</div><div class="bn on" onclick="go('pg-lb')"><div class="bn-i">🏆</div>Ranks</div><div class="bn" onclick="go('pg-prof')"><div class="bn-i">👤</div>Profile</div></div></div>
+<div class="pg" id="lb" style="justify-content:flex-start">
+<div class="nb"><div class="nl">🏆 Leaderboard</div><div class="av" id="lav" onclick="go('pf')">J</div></div>
+<div class="lbody">
+<div class="lbh"><h2>Today's Rankings</h2><p id="lbs">Top performers from today's quiz</p></div>
+<div class="lbl" id="lbl"><div style="text-align:center;padding:40px;color:#475569;font-size:14px">Loading rankings...</div></div>
+</div>
+<div class="bnv"><div class="bn" onclick="go('hm')"><div class="bn-i">🏠</div>Home</div><div class="bn on" onclick="go('lb')"><div class="bn-i">🏆</div>Ranks</div><div class="bn" onclick="go('pf')"><div class="bn-i">👤</div>Profile</div></div>
+</div>
+
 <!-- PROFILE -->
-<div class="pg" id="pg-prof"><div class="nav"><div class="nav-l">👤 Profile</div></div><div class="pbody"><div class="ph"><div class="pav" id="pav">U</div><div class="pnm" id="pnm">Aspirant</div><div class="pem" id="pem"></div><div class="pbdg">⚡ Free Plan</div></div><div style="font-size:11px;font-weight:700;color:#64748B;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px">🪪 Proof of Preparation Card</div><div class="popc"><div class="poplk">🔒</div><div class="popt">Proof of Preparation</div><div class="popst"><div class="pops"><div class="popsn" id="pdays">0</div><div class="popsl">Days</div></div><div class="pops"><div class="popsn" id="pacc">0%</div><div class="popsl">Accuracy</div></div><div class="pops"><div class="popsn" id="pqz">0</div><div class="popsl">Quizzes</div></div></div></div><div class="upc"><div class="upt">🚀 Upgrade to Pro</div><div class="ups">Unlock your identity as a serious aspirant.</div><div class="upf"><div class="uf">✅ Appear ranked on leaderboard</div><div class="uf">✅ Shareable PoP Card</div><div class="uf">✅ Unlimited quizzes</div><div class="uf">✅ Full performance history</div></div><button class="btn-up" onclick="window.open('https://rzp.io/rzp/zJ6jF8B','_blank')">Upgrade — ₹149/month</button></div><button class="btn-out" onclick="logout()">Sign Out</button></div><div class="bnav"><div class="bn" onclick="go('pg-home')"><div class="bn-i">🏠</div>Home</div><div class="bn" onclick="go('pg-lb')"><div class="bn-i">🏆</div>Ranks</div><div class="bn on" onclick="go('pg-prof')"><div class="bn-i">👤</div>Profile</div></div></div>
+<div class="pg" id="pf" style="justify-content:flex-start">
+<div class="nb"><div class="nl">👤 Profile</div></div>
+<div class="pbody">
+<div class="ph">
+<div class="pav" id="pav">J</div>
+<div class="pnm" id="pnm">Aspirant</div>
+<div class="pem" id="pem"></div>
+<div class="pbdg">⚡ Free Plan</div>
+</div>
+<div style="font-size:11px;font-weight:700;color:#334155;letter-spacing:.6px;text-transform:uppercase;margin-bottom:12px">🪪 Proof of Preparation Card</div>
+<div class="pop-preview">
+<div class="pop-preview-blur">
+<div class="pop-lock-ico">🔒</div>
+<div class="pop-lock-t">Your PoP Card is Locked</div>
+<div class="pop-lock-s">Upgrade to Pro to unlock your beautiful shareable preparation identity card</div>
+<button class="btn-unlock" onclick="window.open('https://rzp.io/rzp/zJ6jF8B','_blank')">Unlock for ₹149/month</button>
+</div>
+<div class="pop-inner">
+<div class="pop-header">
+<div class="pop-av" id="pop-av">J</div>
+<div><div class="pop-nm" id="pop-nm">Aspirant</div><div class="pop-ex" id="pop-ex">🎯 Preparing for UPSC · Day 1</div></div>
+</div>
+<div class="pop-stats">
+<div class="pops"><div class="popsn" id="pd">0</div><div class="popsl">Days Active</div></div>
+<div class="pops"><div class="popsn" id="pa">0%</div><div class="popsl">Accuracy</div></div>
+<div class="pops"><div class="popsn" id="pq">0</div><div class="popsl">Quizzes</div></div>
+</div>
+<div class="pop-bar-row"><div class="pop-bar-label"><span>General Studies</span><span id="gs-pct">0%</span></div><div class="pop-bar-bg"><div class="pop-bar-fill" id="gs-bar" style="width:0%"></div></div></div>
+<div class="pop-bar-row"><div class="pop-bar-label"><span>Reasoning</span><span>--</span></div><div class="pop-bar-bg"><div class="pop-bar-fill" style="width:0%;background:linear-gradient(90deg,#F59E0B,#FDE68A)"></div></div></div>
+<div class="pop-footer"><span>micro-mock.in</span><span class="pop-ready" id="pop-ready">Readiness: 0%</span></div>
+</div>
+</div>
+<div class="upc">
+<div class="upt">🚀 Upgrade to Pro</div>
+<div class="ups">Become a verified, serious aspirant. Your preparation deserves to be seen.</div>
+<div class="upf">
+<div class="uf">Appear ranked on the leaderboard</div>
+<div class="uf">Unlock &amp; share your PoP Card</div>
+<div class="uf">Unlimited quizzes — all subjects</div>
+<div class="uf">Full 90-day performance history</div>
+<div class="uf">Exam readiness percentage score</div>
+</div>
+<button class="bm" onclick="window.open('https://rzp.io/rzp/zJ6jF8B','_blank')" style="margin-bottom:12px;font-size:16px;padding:18px">Upgrade — ₹149/month →</button>
+</div>
+<button class="btn-out" onclick="logout()">Sign Out</button>
+</div>
+<div class="bnv"><div class="bn" onclick="go('hm')"><div class="bn-i">🏠</div>Home</div><div class="bn" onclick="go('lb')"><div class="bn-i">🏆</div>Ranks</div><div class="bn on" onclick="go('pf')"><div class="bn-i">👤</div>Profile</div></div>
+</div>
+
 <script>
 var SB='https://xkijsokwttuypxcgppbe.supabase.co',KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhraWpzb2t3dHR1eXB4Y2dwcGJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODE4NzcsImV4cCI6MjA4ODY1Nzg3N30.GVnoXPvWaPtStQpqRV5ozUwjb-JJhhl1Iba660Z8aa8',H={'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'};
-var user=null,prof=null,qs=[],qi=0,sc=0,done=false,tmr=null,tl=600,t0=null,exam=null;
-function go(id){document.querySelectorAll('.pg').forEach(function(p){p.classList.remove('on')});document.getElementById(id).classList.add('on');if(id==='pg-lb')lLB();if(id==='pg-prof')lProf();}
-var tt;function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.remove('hide');clearTimeout(tt);tt=setTimeout(function(){t.classList.add('hide');},2500);}
-async function api(table,q){try{var r=await fetch(SB+'/rest/v1/'+table+(q||''),{headers:H});return r.ok?await r.json():[];}catch(e){return[];}}
-async function ins(table,data){try{var r=await fetch(SB+'/rest/v1/'+table,{method:'POST',headers:Object.assign({},H,{'Prefer':'return=representation'}),body:JSON.stringify(data)});return r.ok?await r.json():null;}catch(e){return null;}}
+var U=null,P=null,QS=[],QI=0,SC=0,DN=false,tmr=null,TL=600,T0=null,EX=null,deferredPrompt=null;
+var QUOTES=[['Success is not final, failure is not fatal: it is the courage to continue that counts.','Winston Churchill'],['The secret of getting ahead is getting started.','Mark Twain'],['It always seems impossible until it\'s done.','Nelson Mandela'],['Believe you can and you\'re halfway there.','Theodore Roosevelt'],['Hard work beats talent when talent doesn\'t work hard.','Tim Notke']];
+var tt,tto;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tto);tto=setTimeout(function(){t.classList.remove('show');},2500);}
+function go(id){document.querySelectorAll('.pg').forEach(function(p){p.classList.remove('on')});document.getElementById(id).classList.add('on');if(id==='lb')lLB();if(id==='pf')lPF();}
+async function api(t,q){try{var r=await fetch(SB+'/rest/v1/'+t+(q||''),{headers:H});return r.ok?await r.json():[];}catch(e){return[];}}
+async function ins(t,d){try{var r=await fetch(SB+'/rest/v1/'+t,{method:'POST',headers:Object.assign({},H,{'Prefer':'return=representation'}),body:JSON.stringify(d)});return r.ok?await r.json():null;}catch(e){return null;}}
 async function init(){
   var h=location.hash;
   if(h.includes('access_token')){var p=new URLSearchParams(h.slice(1));var tk=p.get('access_token');if(tk){localStorage.setItem('mm_tk',tk);location.replace(location.pathname);return;}}
   var tk=localStorage.getItem('mm_tk');
-  if(!tk){go('pg-login');return;}
+  if(!tk){go('lg');return;}
   try{
-    var r=await fetch(SB+'/auth/v1/user',{headers:Object.assign({},H,{'Authorization':'Bearer '+tk})});
-    if(!r.ok){localStorage.removeItem('mm_tk');go('pg-login');return;}
-    user=await r.json();
-    var ex=await api('users','?id=eq.'+user.id);
-    if(ex&&ex.length>0){prof=ex[0];if(!prof.name){go('pg-onboard');return;}lHome();}
-    else go('pg-onboard');
-  }catch(e){localStorage.removeItem('mm_tk');go('pg-login');}
+    var r=await fetch(SB+'/auth/v1/user',{headers:Object.assign({},H,{'Authorization':'Bearer '+tk}),signal:AbortSignal.timeout(5000)});
+    if(!r.ok){localStorage.removeItem('mm_tk');go('lg');return;}
+    U=await r.json();
+    var ex=await api('users','?id=eq.'+U.id);
+    if(ex&&ex.length>0){P=ex[0];if(!P.name){go('ob');return;}lHM();}
+    else go('ob');
+  }catch(e){localStorage.removeItem('mm_tk');go('lg');}
 }
-function logout(){localStorage.removeItem('mm_tk');user=null;prof=null;go('pg-login');}
-function pEx(el,ex){document.querySelectorAll('.eb').forEach(function(e){e.classList.remove('sel')});el.classList.add('sel');exam=ex;}
+function logout(){localStorage.removeItem('mm_tk');U=null;P=null;go('lg');}
+function pEx(el,ex){document.querySelectorAll('.eb').forEach(function(e){e.classList.remove('sel')});el.classList.add('sel');EX=ex;}
 async function fOb(){
-  var nm=document.getElementById('ob-name').value.trim();
-  if(!nm){toast('Enter your name!');return;}if(!exam){toast('Pick your exam!');return;}
+  var nm=document.getElementById('obn').value.trim();
+  if(!nm){toast('Please enter your name!');return;}if(!EX){toast('Please pick your target exam!');return;}
   var tk=localStorage.getItem('mm_tk');
-  try{await fetch(SB+'/rest/v1/users',{method:'POST',headers:Object.assign({},H,{'Authorization':'Bearer '+tk,'Prefer':'return=representation'}),body:JSON.stringify({id:user.id,email:user.email,name:nm,exam_target:exam,plan:'free'})});}catch(e){}
-  prof={id:user.id,email:user.email,name:nm,exam_target:exam,plan:'free'};
-  toast('Welcome to Micro Mock! 🎉');lHome();
+  try{await fetch(SB+'/rest/v1/users',{method:'POST',headers:Object.assign({},H,{'Authorization':'Bearer '+tk,'Prefer':'return=representation'}),body:JSON.stringify({id:U.id,email:U.email,name:nm,exam_target:EX,plan:'free'})});}catch(e){}
+  P={id:U.id,email:U.email,name:nm,exam_target:EX,plan:'free'};toast('Welcome to Micro Mock! 🎉');lHM();
 }
-async function lHome(){
-  go('pg-home');
-  var ini=(prof&&prof.name||'U')[0].toUpperCase();
-  document.getElementById('hav').textContent=ini;document.getElementById('lbav').textContent=ini;
-  var at=await api('user_attempts','?user_id=eq.'+user.id+'&limit=30');
-  if(at&&at.length){var avg=at.reduce(function(s,a){return s+parseFloat(a.accuracy_pct||0);},0)/at.length;document.getElementById('hacc').textContent=Math.round(avg)+'%';document.getElementById('hstreak').textContent=at.length;}
-  var today=new Date().toISOString().split('T')[0];
-  var qz=await api('quizzes','?scheduled_for=eq.'+today+'&is_published=eq.true&limit=1');
-  if(qz&&qz.length){document.getElementById('htitle').textContent=qz[0].title;document.getElementById('hsub').textContent=qz[0].exam_target+' · '+qz[0].subject;}
+async function lHM(){
+  go('hm');
+  var ini=(P&&P.name||'U')[0].toUpperCase();
+  ['hav','lav'].forEach(function(id){document.getElementById(id).textContent=ini;});
+  var q=QUOTES[Math.floor(Math.random()*QUOTES.length)];
+  document.getElementById('quote-text').textContent='"'+q[0]+'"';
+  document.getElementById('quote-auth').textContent='— '+q[1];
+  var at=await api('user_attempts','?user_id=eq.'+U.id+'&limit=30');
+  if(at&&at.length){var avg=at.reduce(function(s,a){return s+parseFloat(a.accuracy_pct||0);},0)/at.length;document.getElementById('hac').textContent=Math.round(avg)+'%';document.getElementById('hst').textContent=at.length;}
+  var td=new Date().toISOString().split('T')[0];
+  var qz=await api('quizzes','?scheduled_for=eq.'+td+'&is_published=eq.true&limit=1');
+  if(qz&&qz.length){document.getElementById('htl').textContent=qz[0].title;document.getElementById('hpill1').textContent=qz[0].exam_target+' · '+qz[0].subject;}
+  if(deferredPrompt)document.getElementById('install-banner').style.display='flex';
 }
-async function bQuiz(){
-  document.getElementById('btn-sq').disabled=true;document.getElementById('btn-sq').textContent='Loading...';
-  var today=new Date().toISOString().split('T')[0];
-  var qz=await api('quizzes','?scheduled_for=eq.'+today+'&is_published=eq.true&limit=1');
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;});
+function installApp(){if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(function(){deferredPrompt=null;document.getElementById('install-banner').style.display='none';});}}
+async function bQz(){
+  var b=document.getElementById('bsq');b.disabled=true;b.textContent='Loading quiz...';
+  var td=new Date().toISOString().split('T')[0];
+  var qz=await api('quizzes','?scheduled_for=eq.'+td+'&is_published=eq.true&limit=1');
   if(!qz||!qz.length)qz=await api('quizzes','?is_published=eq.true&order=created_at.desc&limit=1');
-  if(!qz||!qz.length){toast('No quiz yet! 📚');document.getElementById('btn-sq').disabled=false;document.getElementById('btn-sq').textContent='Start Today\'s Quiz →';return;}
+  if(!qz||!qz.length){toast('No quiz available yet! 📚');b.disabled=false;b.textContent='Start Today\'s Quiz →';return;}
   var qq=await api('questions','?quiz_id=eq.'+qz[0].id+'&limit=10');
-  if(!qq||!qq.length){toast('Questions loading soon! 📚');document.getElementById('btn-sq').disabled=false;document.getElementById('btn-sq').textContent='Start Today\'s Quiz →';return;}
-  qs=qq;qi=0;sc=0;tl=600;t0=Date.now();go('pg-quiz');rQ();sTmr();
+  if(!qq||!qq.length){toast('Questions loading soon! 📚');b.disabled=false;b.textContent='Start Today\'s Quiz →';return;}
+  QS=qq;QI=0;SC=0;TL=600;T0=Date.now();go('qz');rQ();sTmr();
 }
 function rQ(){
-  var q=qs[qi];
-  document.getElementById('qprog').style.width=((qi+1)/qs.length*100)+'%';
-  document.getElementById('qctr').textContent='Q'+(qi+1)+' of '+qs.length;
-  document.getElementById('qsubj').textContent=q.subject||'GS';
-  document.getElementById('qdiff').textContent=(q.difficulty||'medium')[0].toUpperCase()+(q.difficulty||'medium').slice(1);
-  document.getElementById('qtext').textContent=q.question_text;
-  document.getElementById('qexp').style.display='none';
-  var oc=document.getElementById('qopts');oc.innerHTML='';
+  var q=QS[QI];
+  document.getElementById('qpr').style.width=((QI+1)/QS.length*100)+'%';
+  document.getElementById('qct').textContent='Q '+(QI+1)+' / '+QS.length;
+  document.getElementById('qdf').textContent=(q.subject||'GS')+' · '+(q.difficulty||'Medium')[0].toUpperCase()+(q.difficulty||'medium').slice(1);
+  document.getElementById('qtx').textContent=q.question_text;
+  document.getElementById('qex').style.display='none';
+  var oc=document.getElementById('qop');oc.innerHTML='';
   ['A','B','C','D'].forEach(function(lt,i){
-    var vals=[q.option_a,q.option_b,q.option_c,q.option_d];
-    var btn=document.createElement('button');btn.className='opt';
-    btn.innerHTML='<div class="ol">'+lt+'</div>'+vals[i];
-    btn.onclick=function(){pAns(lt,q);};oc.appendChild(btn);
+    var v=[q.option_a,q.option_b,q.option_c,q.option_d];
+    var b=document.createElement('button');b.className='opt';
+    b.innerHTML='<div class="ol">'+lt+'</div><span>'+v[i]+'</span>';
+    b.onclick=function(){pA(lt,q);};oc.appendChild(b);
   });
-  done=false;var nb=document.getElementById('btn-nxt');nb.disabled=true;nb.textContent='Select an answer';
+  DN=false;var nb=document.getElementById('bnx');nb.disabled=true;nb.textContent='Select an answer to continue';
 }
-function pAns(lt,q){
-  if(done)return;done=true;
+function pA(lt,q){
+  if(DN)return;DN=true;
   document.querySelectorAll('.opt').forEach(function(b){var l=b.querySelector('.ol').textContent;if(l===q.correct_option)b.classList.add('ok');else if(l===lt&&lt!==q.correct_option)b.classList.add('no');});
-  if(lt===q.correct_option){sc++;toast('✅ Correct!');}else toast('❌ Wrong');
-  if(q.explanation){document.getElementById('qexptext').textContent=q.explanation;document.getElementById('qexp').style.display='block';}
-  var nb=document.getElementById('btn-nxt');nb.disabled=false;nb.textContent=qi<qs.length-1?'Next →':'See Results 🎯';
+  if(lt===q.correct_option){SC++;toast('✅ Correct! Well done');}else toast('❌ Wrong — check the explanation');
+  if(q.explanation){document.getElementById('qxt').textContent=q.explanation;document.getElementById('qex').style.display='block';}
+  var nb=document.getElementById('bnx');nb.disabled=false;nb.textContent=QI<QS.length-1?'Next Question →':'See My Results 🎯';
 }
-function nxtQ(){if(!done)return;qi++;if(qi>=qs.length){eQuiz();return;}rQ();}
-async function eQuiz(){
-  clearInterval(tmr);var sec=Math.round((Date.now()-t0)/1000);var acc=Math.round(sc/qs.length*100);
-  await ins('user_attempts',{user_id:user.id,quiz_id:qs[0].quiz_id,score:sc,total_questions:qs.length,accuracy_pct:acc,time_taken_sec:sec});
-  var em=sc>=8?'🏆':sc>=6?'🎉':sc>=4?'💪':'📚';var ttl=sc>=8?'Outstanding!':sc>=6?'Great Job!':sc>=4?'Keep Practicing!':'Keep Going!';
-  document.getElementById('re').textContent=em;document.getElementById('rt').textContent=ttl;
-  document.getElementById('rscore').textContent=sc;document.getElementById('racc').textContent=acc+'%';
-  document.getElementById('rcor').textContent=sc+'/'+qs.length;document.getElementById('rtime').textContent=sec+'s';
-  go('pg-res');
+function nQ(){if(!DN)return;QI++;if(QI>=QS.length){eQz();return;}rQ();}
+async function eQz(){
+  clearInterval(tmr);var sec=Math.round((Date.now()-T0)/1000);var acc=Math.round(SC/QS.length*100);
+  await ins('user_attempts',{user_id:U.id,quiz_id:QS[0].quiz_id,score:SC,total_questions:QS.length,accuracy_pct:acc,time_taken_sec:sec});
+  document.getElementById('re').textContent=SC>=8?'🏆':SC>=6?'🎉':SC>=4?'💪':'📚';
+  document.getElementById('rt').textContent=SC>=8?'Outstanding!':SC>=6?'Great Job!':SC>=4?'Keep Going!':'Keep Practicing!';
+  document.getElementById('rsc').textContent=SC;document.getElementById('rac').textContent=acc+'%';
+  document.getElementById('rco').textContent=SC+'/'+QS.length;document.getElementById('rtm').textContent=sec+'s';
+  // Beat percentage
+  var all=await api('user_attempts','?quiz_id=eq.'+QS[0].quiz_id);
+  if(all&&all.length>1){var beat=all.filter(function(a){return a.score<SC;}).length;var pct=Math.round(beat/(all.length-1)*100);document.getElementById('beat-pct').textContent='You beat '+pct+'% 🎯';}
+  else document.getElementById('beat-pct').textContent='First attempt today! 🌟';
+  if(SC>=7)launchConfetti();
+  go('rs');
 }
-function sTmr(){clearInterval(tmr);tmr=setInterval(function(){tl--;var m=Math.floor(tl/60).toString().padStart(2,'0');var s=(tl%60).toString().padStart(2,'0');document.getElementById('qtmr').textContent=m+':'+s;if(tl<=0){clearInterval(tmr);eQuiz();}if(tl<=60)document.getElementById('qtmr').style.color='#EF4444';},1000);}
-function qQuit(){if(confirm('Quit? Progress lost.')){clearInterval(tmr);go('pg-home');}}
+function launchConfetti(){
+  var cw=document.getElementById('cw');cw.innerHTML='';
+  var colors=['#4F46E5','#059669','#F59E0B','#EC4899','#A5F3FC'];
+  for(var i=0;i<80;i++){
+    var c=document.createElement('div');c.className='conf';
+    var x=Math.random()*100;var dur=Math.random()*2+2;var del=Math.random()*2;
+    c.style.cssText='left:'+x+'%;top:-20px;background:'+colors[Math.floor(Math.random()*colors.length)]+';animation-duration:'+dur+'s;animation-delay:'+del+'s;transform:rotate('+Math.random()*360+'deg);width:'+(Math.random()*10+5)+'px;height:'+(Math.random()*10+5)+'px';
+    cw.appendChild(c);
+  }
+  setTimeout(function(){cw.innerHTML='';},5000);
+}
+function sTmr(){clearInterval(tmr);tmr=setInterval(function(){TL--;var m=Math.floor(TL/60).toString().padStart(2,'0');var s=(TL%60).toString().padStart(2,'0');document.getElementById('qtm').textContent=m+':'+s;if(TL<=0){clearInterval(tmr);eQz();}if(TL<=60)document.getElementById('qtm').style.color='#EF4444';},1000);}
 async function lLB(){
-  var data=await api('daily_leaderboard','?limit=20&order=rank.asc');
-  var list=document.getElementById('lblist');
-  if(!data||!data.length){list.innerHTML='<div style="text-align:center;padding:40px;color:#64748B">No attempts yet. Be first! 🏆</div>';return;}
-  list.innerHTML=data.map(function(it,i){var rk=i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+it.rank;var av=(it.name||'U')[0].toUpperCase();return '<div class="lbr"><div class="lbrk">'+rk+'</div><div class="lbav">'+av+'</div><div class="lbi"><div class="lbn">'+(it.name||'Aspirant')+'</div><div class="lbe">'+(it.exam_target||'UPSC')+'</div></div><div class="lbs"><div class="lbsv">'+it.score+'/'+(it.total_questions||10)+'</div><div class="lbsa">'+(it.accuracy_pct||0)+'%</div></div></div>';}).join('');
+  var data=await api('daily_leaderboard','?limit=20&order=rank.asc');var list=document.getElementById('lbl');
+  if(!data||!data.length){list.innerHTML='<div style="text-align:center;padding:48px;color:#475569"><div style="font-size:40px;margin-bottom:12px">🏆</div><div style="font-size:16px;font-weight:700;color:#E2E8F0;margin-bottom:6px">No attempts yet today</div><div style="font-size:13px">Be the first to complete today\'s quiz!</div></div>';return;}
+  list.innerHTML=data.map(function(it,i){
+    var rk=i===0?'🥇':i===1?'🥈':i===2?'🥉':'<span style="color:#475569;font-size:14px">#'+it.rank+'</span>';
+    var av=(it.name||'U')[0].toUpperCase();var isMe=U&&it.id===U.id;
+    return '<div class="lbr'+(isMe?' me':'')+'"><div class="lbrk">'+rk+'</div><div class="lbav">'+av+'</div><div class="lbi"><div class="lbn">'+(it.name||'Aspirant')+(isMe?' (You)':'')+'</div><div class="lbe">'+(it.exam_target||'UPSC')+'</div></div><div class="lbs"><div class="lbsv">'+it.score+'/'+(it.total_questions||10)+'</div><div class="lbsa">'+(it.accuracy_pct||0)+'% acc</div></div></div>';
+  }).join('');
 }
-async function lProf(){
-  if(!prof)return;
-  var av=(prof.name||'U')[0].toUpperCase();
-  document.getElementById('pav').textContent=av;document.getElementById('pnm').textContent=prof.name||'Aspirant';document.getElementById('pem').textContent=user&&user.email||'';
-  var at=await api('user_attempts','?user_id=eq.'+user.id);
-  if(at&&at.length){var avg=at.reduce(function(s,a){return s+parseFloat(a.accuracy_pct||0);},0)/at.length;document.getElementById('pdays').textContent=at.length;document.getElementById('pacc').textContent=Math.round(avg)+'%';document.getElementById('pqz').textContent=at.length;}
+async function lPF(){
+  if(!P)return;
+  var av=(P.name||'U')[0].toUpperCase();
+  ['pav','pop-av'].forEach(function(id){document.getElementById(id).textContent=av;});
+  document.getElementById('pnm').textContent=P.name||'Aspirant';
+  document.getElementById('pem').textContent=U&&U.email||'';
+  document.getElementById('pop-nm').textContent=P.name||'Aspirant';
+  var at=await api('user_attempts','?user_id=eq.'+U.id);
+  if(at&&at.length){
+    var avg=at.reduce(function(s,a){return s+parseFloat(a.accuracy_pct||0);},0)/at.length;var avgR=Math.round(avg);
+    document.getElementById('pd').textContent=at.length;
+    document.getElementById('pa').textContent=avgR+'%';
+    document.getElementById('pq').textContent=at.length;
+    document.getElementById('gs-pct').textContent=avgR+'%';
+    document.getElementById('gs-bar').style.width=avgR+'%';
+    document.getElementById('pop-ex').textContent='🎯 Preparing for '+(P.exam_target||'UPSC')+' · Day '+at.length;
+    document.getElementById('pop-ready').textContent='Readiness: '+Math.min(avgR,100)+'%';
+  }
 }
-function sScore(){var sc2=document.getElementById('rscore').textContent;var ac=document.getElementById('racc').textContent;var txt='🎯 I scored '+sc2+'/10 ('+ac+') on today\'s Micro Mock quiz!\n\nPreparing daily for my government exam 💪\n\nJoin me: https://zeet3283.github.io/Micro-Mock/';if(navigator.share)navigator.share({title:'My Score',text:txt});else{navigator.clipboard.writeText(txt);toast('Copied! Share it 📤');}}
-// BOOT
+function shareScore(){
+  var s=document.getElementById('rsc').textContent;var a=document.getElementById('rac').textContent;var b=document.getElementById('beat-pct').textContent;
+  var txt='🎯 I scored '+s+'/10 ('+a+') on today\'s Micro Mock quiz!\n'+b+'\n\nPreparing daily for my govt exam 💪\n\nTry it free: https://zeet3283.github.io/Micro-Mock/';
+  if(navigator.share)navigator.share({title:'My Micro Mock Score',text:txt});
+  else{navigator.clipboard.writeText(txt).catch(function(){});toast('Score copied! Share it anywhere 📤');}
+}
 init();
-</script>
-</body></html>
+</script></body></html>
