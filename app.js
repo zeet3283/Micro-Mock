@@ -718,6 +718,14 @@ async function sendMsg() {
   sending = false;
   if (sendBtn) sendBtn.disabled = false;
 }
+  } catch (e) {
+    console.error('Chat error:', e);
+    removeTyping(typId);
+    addMsg('ai', 'Connection error. Please try again.');
+    sending = false;
+    var sb = document.getElementById('chat-send');
+    if (sb) sb.disabled = false;
+  }
 
 function addMsg(role, txt) {
   var msgs = document.getElementById('chat-msgs');
