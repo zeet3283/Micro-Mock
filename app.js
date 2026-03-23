@@ -98,72 +98,53 @@ async function patch(t, q, d) {
 // ── AUTH ──
 async function init() {
   try {
-    // Step 1: Handle Google OAuth redirect
+    // Handle Google OAuth token in URL hash
     var hash = location.hash;
     if (hash && hash.includes('access_token')) {
       var params = new URLSearchParams(hash.slice(1));
       var tk = params.get('access_token');
       if (tk) {
         localStorage.setItem('mm_tk', tk);
-        // Clean URL and reload cleanly
         history.replaceState(null, '', location.pathname);
-        // Don't return — continue with the token we just saved
       }
     }
  
-    // Step 2: Check for stored token
     var token = localStorage.getItem('mm_tk');
-    if (!token) {
-      go('lg');
-      return;
-    }
+    if (!token) { go('lg'); return; }
  
-    // Step 3: Verify token with Supabase (5s timeout)
-    var controller = new AbortController();
-    var timeoutId = setTimeout(function() { controller.abort(); }, 5000);
- 
-    var response = await fetch(SB + '/auth/v1/user', {
+    // Verify token with 6s timeout
+    var ctrl = new AbortController();
+    var tid = setTimeout(function() { ctrl.abort(); }, 6000);
+    var res = await fetch(SB + '/auth/v1/user', {
       headers: Object.assign({}, H, { 'Authorization': 'Bearer ' + token }),
-      signal: controller.signal
+      signal: ctrl.signal
     });
-    clearTimeout(timeoutId);
+    clearTimeout(tid);
  
-    if (!response.ok) {
-      localStorage.removeItem('mm_tk');
-      go('lg');
-      return;
-    }
+    if (!res.ok) { localStorage.removeItem('mm_tk'); go('lg'); return; }
  
-    U = await response.json();
+    U = await res.json();
  
-    // Step 4: Load user profile
-    var profileData = await api('users', '?id=eq.' + U.id + '&limit=1');
- 
-    if (profileData && profileData.length > 0) {
-      P = profileData[0];
-      if (!P.name || P.name.trim() === '') {
-        go('ob');
-        return;
-      }
-      // ✅ Success — render home screen
-      await renderHM();
+    var profileArr = await api('users', '?id=eq.' + U.id + '&limit=1');
+    if (profileArr && profileArr.length > 0) {
+      P = profileArr[0];
+      if (!P.name || P.name.trim() === '') { go('ob'); return; }
+      await renderHM(); // go('hm') is now called INSIDE renderHM
     } else {
-      // New user — needs onboarding
       go('ob');
     }
- 
   } catch (err) {
-    // AbortError = timeout, other = network issue
-    console.error('Init error:', err.name, err.message);
-    if (err.name === 'AbortError') {
-      // Token check timed out — show login to be safe
-      localStorage.removeItem('mm_tk');
-      go('lg');
-    } else {
-      // Network error — still try to show login
-      go('lg');
-    }
+    console.error('Init failed:', err.name, err.message);
+    localStorage.removeItem('mm_tk');
+    go('lg');
   }
+}
+ 
+// Boot — safe for all DOM states
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function() { setTimeout(init, 50); });
+} else {
+  setTimeout(init, 50);
 }
  
 // ── ALSO FIX renderHM to be defensive ──
@@ -239,11 +220,17 @@ async function fOb() {
   var tk = localStorage.getItem('mm_tk');
   var trialEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
   try {
-    await fetch(SB + '/rest/v1/users', { method: 'POST', headers: Object.assign({}, H, { 'Authorization': 'Bearer ' + tk, 'Prefer': 'return=representation' }), body: JSON.stringify({ id: U.id, email: U.email, name: nm, exam_target: EX, plan: 'free', trial_ends_at: trialEnd, xp: 0, level: 1 }) });
+    await fetch(SB + '/rest/v1/users', {
+      method: 'POST',
+      headers: Object.assign({}, H, { 'Authorization': 'Bearer ' + tk, 'Prefer': 'return=representation' }),
+      body: JSON.stringify({ id: U.id, email: U.email, name: nm, exam_target: EX, plan: 'free', trial_ends_at: trialEnd, xp: 0, level: 1 })
+    });
   } catch (e) {}
   P = { id: U.id, email: U.email, name: nm, exam_target: EX, plan: 'free', xp: 0, level: 1, trial_ends_at: trialEnd };
-  toast('Welcome! Your 7-day Pro trial is active 🎉', 'ok');
-  renderHM();
+  toast('Welcome! 7-day Pro trial is active 🎉', 'ok');
+  // ✅ FIX: explicitly switch screen AFTER rendering
+  await renderHM();
+  go('hm'); // ← THIS WAS MISSING
 }
 
 // ── TRIAL ──
@@ -258,79 +245,84 @@ async function startTrial() {
 
 // ── HOME ──
 async function renderHM() {
+  // ✅ FIX: switch screen immediately — don't wait for data
+  go('hm');
+ 
   var el = document.getElementById('hm');
   var nm = (P && P.name) || 'Aspirant';
   var seed = U ? U.id : nm;
   var q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
   var xp = P && P.xp ? parseInt(P.xp) : 0;
-
-  // Trial days
+ 
+  // Build trial banner HTML
   var trialHTML = '';
   if (P && P.trial_ends_at) {
     var diff = Math.ceil((new Date(P.trial_ends_at) - new Date()) / (1000 * 60 * 60 * 24));
     if (diff > 0 && diff <= 7) {
-      trialHTML = '<div class="trial-banner"><div class="tb-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2z"/></svg></div><div style="flex:1"><div class="tb-days">' + diff + '</div><div class="tb-label">days of Pro trial remaining</div></div><button class="tb-btn" onclick="window.open(\'https://rzp.io/rzp/zJ6jF8B\',\'_blank\')">Upgrade</button></div>';
+      trialHTML = '<div class="trial-banner">'
+        + '<div class="tb-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2z"/></svg></div>'
+        + '<div style="flex:1"><div class="tb-days">' + diff + '</div><div class="tb-label">days of Pro trial remaining</div></div>'
+        + '<button class="tb-btn" onclick="window.open(\'https://rzp.io/rzp/zJ6jF8B\',\'_blank\')">Upgrade</button>'
+        + '</div>';
     }
   }
-
-  el.innerHTML =
-    '<div class="nav">' +
-      '<div class="nav-logo">' + LOGO_SVG + '<div class="nav-logo-text">Micro <span>Mock</span></div></div>' +
-      '<div class="nav-right"><div class="user-av" id="hav" onclick="go(\'pf\')"><img id="hav-img" src="' + avUrl(seed) + '" alt=""/></div></div>' +
-    '</div>' +
-    '<div class="hbody">' +
-      '<div class="greet"><div><div class="greet-sub">Good to see you 👋</div><div class="greet-name">' + nm + '</div></div>' +
-      '<div class="streak-chip"><svg width="13" height="13" viewBox="0 0 24 24" fill="#FCD34D"><path d="M12 2c0 0-6 6-6 12a6 6 0 0 0 12 0c0-6-6-12-6-12z"/></svg><span id="hst">0</span></div></div>' +
-      trialHTML +
-      '<div class="xp-bar-wrap"><div class="xp-top"><div class="level-badge"><span id="level-icon">⚡</span><span class="level-name" id="level-nm">Rookie</span></div><span class="xp-count" id="xp-count">' + xp + ' / 100 XP</span></div><div class="xp-track"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div></div>' +
-      '<div class="qhero"><div class="qhero-orb1"></div><div class="qhero-orb2"></div>' +
-        '<div class="live-tag"><div class="live-dot"></div><div class="live-label">Live Now</div></div>' +
-        '<div class="qhero-t" id="htl">Daily MCQ Challenge</div>' +
-        '<div class="qhero-pills"><span class="pill" id="hpill">' + (P && P.exam_target ? P.exam_target : 'UPSC') + '</span><span class="pill">10 Questions</span><span class="pill">10 Min</span></div>' +
-        '<button class="btn btn-p" id="bsq" onclick="bQz()" style="position:relative;z-index:1">Start Today\'s Quiz →</button>' +
-      '</div>' +
-      '<div class="stats-grid">' +
-        '<div class="stat-box"><div class="stat-val" style="background:linear-gradient(135deg,#6366F1,#22D3EE);-webkit-background-clip:text;-webkit-text-fill-color:transparent" id="hac">0%</div><div class="stat-lbl">Accuracy</div></div>' +
-        '<div class="stat-box"><div class="stat-val" style="background:linear-gradient(135deg,#10B981,#22D3EE);-webkit-background-clip:text;-webkit-text-fill-color:transparent" id="hqz">0</div><div class="stat-lbl">Quizzes</div></div>' +
-        '<div class="stat-box"><div class="stat-val" style="background:linear-gradient(135deg,#F59E0B,#F97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent" id="hxp">' + xp + '</div><div class="stat-lbl">XP</div></div>' +
-      '</div>' +
-      '<div style="font-size:15px;font-weight:800;margin-bottom:12px">Practice by Subject</div>' +
-      '<div class="subj-grid">' +
-        '<div class="subj-card" onclick="toast(\'GS coming soon!\')"><div class="subj-ico" style="background:rgba(99,102,241,.1)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#818CF8" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div><div><div class="subj-nm">General Studies</div><div class="subj-info">Polity · History</div></div></div>' +
-        '<div class="subj-card" onclick="toast(\'Reasoning coming soon!\')"><div class="subj-ico" style="background:rgba(245,158,11,.1)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FCD34D" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div><div><div class="subj-nm">Reasoning</div><div class="subj-info">Logical · Verbal</div></div></div>' +
-        '<div class="subj-card" onclick="toast(\'Quant coming soon!\')"><div class="subj-ico" style="background:rgba(16,185,129,.1)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg></div><div><div class="subj-nm">Quantitative</div><div class="subj-info">Arithmetic · DI</div></div></div>' +
-        '<div class="subj-card" onclick="toast(\'Current Affairs coming soon!\')"><div class="subj-ico" style="background:rgba(34,211,238,.1)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#67E8F9" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2zm0 0H2v-2a2 2 0 0 1 2-2v4z"/></svg></div><div><div class="subj-nm">Current Affairs</div><div class="subj-info">News · Events</div></div></div>' +
-      '</div>' +
-      '<div class="quote"><div class="q-tag">Daily Fuel</div><div class="q-txt">"' + q[0] + '"</div><div class="q-by">— ' + q[1] + '</div></div>' +
-    '</div>' +
-    '<div class="bnav">' +
-      '<div class="bn on" onclick="go(\'hm\')">' + NAV_SVG.home + 'Home</div>' +
-      '<div class="bn" onclick="go(\'lb\')">' + NAV_SVG.ranks + 'Ranks</div>' +
-      '<div class="bn" onclick="go(\'pf\')">' + NAV_SVG.profile + 'Profile</div>' +
-    '</div>';
-
+ 
+  // ✅ Show a loading skeleton immediately so user sees progress
+  el.innerHTML = '<div class="nav">'
+    + '<div class="nav-logo">' + LOGO_SVG + '<div class="nav-logo-text">Micro <span>Mock</span></div></div>'
+    + '<div class="nav-right"><div class="user-av" id="hav" onclick="go(\'pf\')"><img id="hav-img" src="' + avUrl(seed) + '" alt=""/></div></div>'
+    + '</div>'
+    + '<div class="hbody">'
+    + '<div class="greet"><div><div class="greet-sub">Good to see you 👋</div><div class="greet-name">' + nm + '</div></div>'
+    + '<div class="streak-chip"><svg width="13" height="13" viewBox="0 0 24 24" fill="#FCD34D"><path d="M12 2c0 0-6 6-6 12a6 6 0 0 0 12 0c0-6-6-12-6-12z"/></svg><span id="hst">0</span></div></div>'
+    + trialHTML
+    + '<div class="xp-bar-wrap"><div class="xp-top"><div class="level-badge"><span id="level-icon">⚡</span><span class="level-name" id="level-nm">Rookie</span></div><span class="xp-count" id="xp-count">' + xp + ' / 100 XP</span></div><div class="xp-track"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div></div>'
+    + '<div class="qhero"><div class="qhero-orb1"></div><div class="qhero-orb2"></div>'
+    + '<div class="live-tag"><div class="live-dot"></div><div class="live-label">Live Now</div></div>'
+    + '<div class="qhero-t" id="htl">Daily MCQ Challenge</div>'
+    + '<div class="qhero-pills"><span class="pill" id="hpill">' + ((P && P.exam_target) || 'UPSC') + '</span><span class="pill">10 Questions</span><span class="pill">10 Min</span></div>'
+    + '<button class="btn btn-p" id="bsq" onclick="bQz()" style="position:relative;z-index:1">Start Today\'s Quiz →</button>'
+    + '</div>'
+    + '<div class="stats-grid">'
+    + '<div class="stat-box"><div class="stat-val" style="background:linear-gradient(135deg,#6366F1,#22D3EE);-webkit-background-clip:text;-webkit-text-fill-color:transparent" id="hac">--</div><div class="stat-lbl">Accuracy</div></div>'
+    + '<div class="stat-box"><div class="stat-val" style="background:linear-gradient(135deg,#10B981,#22D3EE);-webkit-background-clip:text;-webkit-text-fill-color:transparent" id="hqz">--</div><div class="stat-lbl">Quizzes</div></div>'
+    + '<div class="stat-box"><div class="stat-val" style="background:linear-gradient(135deg,#F59E0B,#F97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent" id="hxp">' + xp + '</div><div class="stat-lbl">XP</div></div>'
+    + '</div>'
+    + '<div style="font-size:15px;font-weight:800;margin-bottom:12px">Practice by Subject</div>'
+    + '<div class="subj-grid">'
+    + '<div class="subj-card" onclick="toast(\'GS coming soon!\')"><div class="subj-ico" style="background:rgba(99,102,241,.1)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#818CF8" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div><div><div class="subj-nm">General Studies</div><div class="subj-info">Polity · History</div></div></div>'
+    + '<div class="subj-card" onclick="toast(\'Reasoning coming soon!\')"><div class="subj-ico" style="background:rgba(245,158,11,.1)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FCD34D" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div><div><div class="subj-nm">Reasoning</div><div class="subj-info">Logical · Verbal</div></div></div>'
+    + '<div class="subj-card" onclick="toast(\'Quant coming soon!\')"><div class="subj-ico" style="background:rgba(16,185,129,.1)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg></div><div><div class="subj-nm">Quantitative</div><div class="subj-info">Arithmetic · DI</div></div></div>'
+    + '<div class="subj-card" onclick="toast(\'Current Affairs coming soon!\')"><div class="subj-ico" style="background:rgba(34,211,238,.1)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#67E8F9" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2zm0 0H2v-2a2 2 0 0 1 2-2v4z"/></svg></div><div><div class="subj-nm">Current Affairs</div><div class="subj-info">News · Events</div></div></div>'
+    + '</div>'
+    + '<div class="quote"><div class="q-tag">Daily Fuel</div><div class="q-txt">"' + q[0] + '"</div><div class="q-by">— ' + q[1] + '</div></div>'
+    + '</div>'
+    + '<div class="bnav">'
+    + '<div class="bn on" onclick="go(\'hm\')">' + NAV_SVG.home + 'Home</div>'
+    + '<div class="bn" onclick="go(\'lb\')">' + NAV_SVG.ranks + 'Ranks</div>'
+    + '<div class="bn" onclick="go(\'pf\')">' + NAV_SVG.profile + 'Profile</div>'
+    + '</div>';
+ 
+  // Show AI fab
   document.getElementById('ai-fab').style.display = 'flex';
   updLvlUI(xp);
-
   aiLeft = (P && P.plan === 'pro') ? 999 : 3;
   updateAiCount();
-
-  // Load stats async
-  api('user_attempts', '?user_id=eq.' + U.id + '&limit=30').then(function (at) {
-    if (at && at.length) {
-      var avg = at.reduce(function (s, a) { return s + parseFloat(a.accuracy_pct || 0); }, 0) / at.length;
-      var hac = document.getElementById('hac'); if (hac) hac.textContent = Math.round(avg) + '%';
-      var hqz = document.getElementById('hqz'); if (hqz) hqz.textContent = at.length;
-      var hst = document.getElementById('hst'); if (hst) hst.textContent = at.length;
-    }
+ 
+  // Load live data AFTER screen is already visible
+  api('user_attempts', '?user_id=eq.' + U.id + '&limit=30').then(function(at) {
+    if (!at || !at.length) return;
+    var avg = at.reduce(function(s, a) { return s + parseFloat(a.accuracy_pct || 0); }, 0) / at.length;
+    var hac = document.getElementById('hac'); if (hac) hac.textContent = Math.round(avg) + '%';
+    var hqz = document.getElementById('hqz'); if (hqz) hqz.textContent = at.length;
+    var hst = document.getElementById('hst'); if (hst) hst.textContent = at.length;
   });
-
+ 
   var td = new Date().toISOString().split('T')[0];
-  api('quizzes', '?scheduled_for=eq.' + td + '&is_published=eq.true&limit=1').then(function (qz) {
-    if (qz && qz.length) {
-      var htl = document.getElementById('htl'); if (htl) htl.textContent = qz[0].title;
-      var hp = document.getElementById('hpill'); if (hp) hp.textContent = qz[0].exam_target;
-    }
+  api('quizzes', '?scheduled_for=eq.' + td + '&is_published=eq.true&limit=1').then(function(qz) {
+    if (!qz || !qz.length) return;
+    var htl = document.getElementById('htl'); if (htl) htl.textContent = qz[0].title;
+    var hp = document.getElementById('hpill'); if (hp) hp.textContent = qz[0].exam_target;
   });
 }
 
