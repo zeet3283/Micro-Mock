@@ -97,22 +97,98 @@ async function patch(t, q, d) {
 
 // ── AUTH ──
 async function init() {
-  var h = location.hash;
-  if (h.includes('access_token')) {
-    var p = new URLSearchParams(h.slice(1));
-    var tk = p.get('access_token');
-    if (tk) { localStorage.setItem('mm_tk', tk); location.replace(location.pathname); return; }
-  }
-  var tk = localStorage.getItem('mm_tk');
-  if (!tk) { go('lg'); return; }
   try {
-    var r = await fetch(SB + '/auth/v1/user', { headers: Object.assign({}, H, { 'Authorization': 'Bearer ' + tk }), signal: AbortSignal.timeout(6000) });
-    if (!r.ok) { localStorage.removeItem('mm_tk'); go('lg'); return; }
-    U = await r.json();
-    var ex = await api('users', '?id=eq.' + U.id);
-    if (ex && ex.length > 0) { P = ex[0]; if (!P.name) { go('ob'); return; } renderHM(); }
-    else go('ob');
-  } catch (e) { localStorage.removeItem('mm_tk'); go('lg'); }
+    // Step 1: Handle Google OAuth redirect
+    var hash = location.hash;
+    if (hash && hash.includes('access_token')) {
+      var params = new URLSearchParams(hash.slice(1));
+      var tk = params.get('access_token');
+      if (tk) {
+        localStorage.setItem('mm_tk', tk);
+        // Clean URL and reload cleanly
+        history.replaceState(null, '', location.pathname);
+        // Don't return — continue with the token we just saved
+      }
+    }
+ 
+    // Step 2: Check for stored token
+    var token = localStorage.getItem('mm_tk');
+    if (!token) {
+      go('lg');
+      return;
+    }
+ 
+    // Step 3: Verify token with Supabase (5s timeout)
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function() { controller.abort(); }, 5000);
+ 
+    var response = await fetch(SB + '/auth/v1/user', {
+      headers: Object.assign({}, H, { 'Authorization': 'Bearer ' + token }),
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+ 
+    if (!response.ok) {
+      localStorage.removeItem('mm_tk');
+      go('lg');
+      return;
+    }
+ 
+    U = await response.json();
+ 
+    // Step 4: Load user profile
+    var profileData = await api('users', '?id=eq.' + U.id + '&limit=1');
+ 
+    if (profileData && profileData.length > 0) {
+      P = profileData[0];
+      if (!P.name || P.name.trim() === '') {
+        go('ob');
+        return;
+      }
+      // ✅ Success — render home screen
+      await renderHM();
+    } else {
+      // New user — needs onboarding
+      go('ob');
+    }
+ 
+  } catch (err) {
+    // AbortError = timeout, other = network issue
+    console.error('Init error:', err.name, err.message);
+    if (err.name === 'AbortError') {
+      // Token check timed out — show login to be safe
+      localStorage.removeItem('mm_tk');
+      go('lg');
+    } else {
+      // Network error — still try to show login
+      go('lg');
+    }
+  }
+}
+ 
+// ── ALSO FIX renderHM to be defensive ──
+// The go() function needs to handle screens that are rendered by JS
+function go(id) {
+  document.querySelectorAll('.pg').forEach(function(p) {
+    p.classList.remove('on');
+  });
+  var target = document.getElementById(id);
+  if (target) {
+    target.classList.add('on');
+  }
+  if (id === 'lb') renderLB();
+  if (id === 'pf') renderPF();
+}
+ 
+// ── BOOT — Replace the last line of app.js ──
+// Wait for DOM to be fully ready before calling init
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(init, 100);
+  });
+} else {
+  // DOM already ready
+  setTimeout(init, 100);
 }
 
 function stab(t) {
