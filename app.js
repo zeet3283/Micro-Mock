@@ -749,27 +749,40 @@ function removeTyping(id) {
   var el = document.getElementById(id); if (el) el.remove();
 }
 // ============================================
-// ADMIN: AI Question Generator (Updated for Google Auth)
+// ADMIN: AI Question Generator (Debug Version)
 // ============================================
  
-const ADMIN_EMAIL = 'thompsonsuppressor@gmail.com'; // Replace with your Google email address
+const ADMIN_EMAIL = 'thompsonsuppressor@gmail.com'; // REPLACE WITH YOUR ACTUAL EMAIL
+ 
+// Debug function to log everything
+function debugLog(message, data = null) {
+  console.log(`[Admin Debug] ${message}`, data ? data : '');
+}
  
 // Function to check if current user is admin
 async function isAdmin() {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user }, error } = await supabase.auth.getUser();
     
-    // Only return true if:
-    // 1. User exists
-    // 2. User email matches admin email
-    // 3. User is actually logged in (not null)
-    if (user && user.email === ADMIN_EMAIL) {
-      console.log('Admin user detected:', user.email);
-      return true;
+    debugLog('getUser response:', { user, error });
+    
+    if (error) {
+      debugLog('Auth error:', error);
+      return false;
     }
-    return false;
+    
+    if (!user) {
+      debugLog('No user found');
+      return false;
+    }
+    
+    debugLog('User email:', user.email);
+    debugLog('Admin email:', ADMIN_EMAIL);
+    debugLog('Is match?', user.email === ADMIN_EMAIL);
+    
+    return user.email === ADMIN_EMAIL;
   } catch (error) {
-    console.error('Auth check error:', error);
+    debugLog('isAdmin error:', error);
     return false;
   }
 }
@@ -777,6 +790,7 @@ async function isAdmin() {
 // Function to check if user is logged in
 async function isLoggedIn() {
   const { data: { user } } = await supabase.auth.getUser();
+  debugLog('isLoggedIn:', user ? `Yes (${user.email})` : 'No');
   return user !== null;
 }
  
@@ -803,7 +817,7 @@ async function loadQuizzes() {
     return [];
   }
   
-  select.innerHTML = '<option value="">-- Select a Quiz --</option>' + 
+  select.innerHTML = '<option value="">-- Select a Quiz --</option>' +
     quizzes.map(q => `<option value="${q.id}">${q.title}</option>`).join('');
   
   return quizzes;
@@ -818,23 +832,16 @@ async function generateQuestions(topic, quizId, count) {
   statusDiv.style.color = '#6366f1';
   
   try {
-    // Call Supabase Edge Function
     const { data, error } = await supabase.functions.invoke('generate-questions', {
       body: { topic, quizId, count }
     });
     
-    if (error) {
-      throw new Error(error.message);
-    }
-    
-    if (!data.success) {
-      throw new Error(data.error || 'Generation failed');
-    }
+    if (error) throw new Error(error.message);
+    if (!data.success) throw new Error(data.error || 'Generation failed');
     
     statusDiv.innerHTML = `✅ Success! ${data.saved} questions added to "${topic}". ${data.errors ? `(${data.errors.length} failed)` : ''}`;
     statusDiv.style.color = '#10b981';
     
-    // Refresh quiz if your app has a refresh function
     setTimeout(() => {
       if (typeof loadCurrentQuiz === 'function') loadCurrentQuiz();
       if (typeof displayQuizzes === 'function') displayQuizzes();
@@ -847,32 +854,39 @@ async function generateQuestions(topic, quizId, count) {
   }
 }
  
-// Initialize admin features (only when user is logged in)
+// Initialize admin features
 async function initAdminFeatures() {
+  debugLog('initAdminFeatures called');
+  
   const adminBtn = document.getElementById('adminGenerateBtn');
-  if (!adminBtn) return;
+  if (!adminBtn) {
+    debugLog('Admin button not found in DOM');
+    return;
+  }
+  
+  debugLog('Admin button found, checking login status...');
   
   // First check if user is logged in
   const loggedIn = await isLoggedIn();
+  debugLog('Logged in status:', loggedIn);
   
   if (!loggedIn) {
-    // User not logged in - hide the button
+    debugLog('User not logged in - hiding button');
     adminBtn.style.display = 'none';
     return;
   }
   
   // User is logged in, check if they are admin
   const isUserAdmin = await isAdmin();
+  debugLog('Is admin check result:', isUserAdmin);
   
   if (isUserAdmin) {
-    console.log('Showing admin button for:', await supabase.auth.getUser().then(res => res.data.user?.email));
+    debugLog('✅ Admin user confirmed - SHOWING button');
     adminBtn.style.display = 'block';
     
-    // Remove existing event listeners to avoid duplicates
-    const newAdminBtn = adminBtn.cloneNode(true);
-    adminBtn.parentNode.replaceChild(newAdminBtn, adminBtn);
-    
-    newAdminBtn.addEventListener('click', async () => {
+    // Setup button click handler
+    adminBtn.onclick = async () => {
+      debugLog('Admin button clicked');
       await loadQuizzes();
       const modal = document.getElementById('generateModal');
       if (modal) {
@@ -881,29 +895,21 @@ async function initAdminFeatures() {
         document.getElementById('questionCount').value = '5';
         document.getElementById('generateStatus').innerHTML = '';
       }
-    });
+    };
     
-    // Modal event handlers
+    // Setup modal handlers
     const closeBtn = document.getElementById('closeModalBtn');
     const confirmBtn = document.getElementById('confirmGenerateBtn');
     const modal = document.getElementById('generateModal');
     
     if (closeBtn) {
-      // Remove existing listeners
-      const newCloseBtn = closeBtn.cloneNode(true);
-      closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
-      
-      newCloseBtn.addEventListener('click', () => {
+      closeBtn.onclick = () => {
         if (modal) modal.style.display = 'none';
-      });
+      };
     }
     
     if (confirmBtn) {
-      // Remove existing listeners
-      const newConfirmBtn = confirmBtn.cloneNode(true);
-      confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-      
-      newConfirmBtn.addEventListener('click', async () => {
+      confirmBtn.onclick = async () => {
         const topic = document.getElementById('topicInput').value.trim();
         const quizId = document.getElementById('quizSelect').value;
         const count = parseInt(document.getElementById('questionCount').value);
@@ -921,46 +927,62 @@ async function initAdminFeatures() {
           return;
         }
         
-        newConfirmBtn.disabled = true;
-        newConfirmBtn.textContent = 'Generating...';
-        
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Generating...';
         await generateQuestions(topic, quizId, count);
-        
-        newConfirmBtn.disabled = false;
-        newConfirmBtn.textContent = 'Generate Questions';
-      });
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Generate Questions';
+      };
     }
     
     if (modal) {
-      modal.addEventListener('click', (e) => {
+      modal.onclick = (e) => {
         if (e.target === modal) {
           modal.style.display = 'none';
         }
-      });
+      };
     }
+    
   } else {
-    // User is logged in but not admin
+    debugLog('❌ User is NOT admin - hiding button');
     adminBtn.style.display = 'none';
-    console.log('User is not admin. Button hidden.');
   }
 }
  
-// Listen for auth state changes (for Google Sign In)
+// Set up auth listener
 if (typeof supabase !== 'undefined') {
-  // Initialize when auth state changes
+  debugLog('Setting up auth listener');
+  
+  // Listen for auth changes
   supabase.auth.onAuthStateChange((event, session) => {
-    console.log('Auth state changed:', event);
+    debugLog('Auth state changed:', event);
+    debugLog('Session:', session);
+    
     if (event === 'SIGNED_IN') {
-      // User just signed in via Google
+      debugLog('User signed in, waiting 1 second before init...');
       setTimeout(() => initAdminFeatures(), 1000);
     } else if (event === 'SIGNED_OUT') {
-      // User signed out - hide button immediately
+      debugLog('User signed out, hiding button');
       const adminBtn = document.getElementById('adminGenerateBtn');
       if (adminBtn) adminBtn.style.display = 'none';
+    } else if (event === 'INITIAL_SESSION') {
+      debugLog('Initial session, checking...');
+      setTimeout(() => initAdminFeatures(), 1000);
     }
   });
   
   // Also check on page load
+  debugLog('Checking on page load...');
   setTimeout(() => initAdminFeatures(), 2000);
+  
+  // Expose debug function to console
+  window.debugAdmin = async () => {
+    debugLog('Manual debug triggered');
+    await initAdminFeatures();
+    const user = await supabase.auth.getUser();
+    console.log('Current user:', user);
+  };
+} else {
+  debugLog('Supabase not found!');
 }
  
