@@ -308,3 +308,65 @@ body { font-family: -apple-system, 'SF Pro Display', 'Segoe UI', system-ui, sans
 .quick-chips { display: flex; gap: 7px; flex-wrap: wrap; }
 .qchip { background: var(--s2); border: 1px solid var(--bd2); border-radius: 20px; padding: 6px 12px; font-size: 12px; font-weight: 600; color: var(--t2); cursor: pointer; white-space: nowrap; transition: all .2s; font-family: inherit; }
 .qchip:active { background: rgba(99,102,241,.15); color: #A5B4FC; }
+/* ── ONBOARDING SLIDES ── */
+#on { background: var(--bg); position: relative; overflow: hidden; justify-content: space-between; }
+
+.ob-slides { display: flex; width: 300%; transition: transform .45s cubic-bezier(.4,0,.2,1); flex: 1; }
+
+.ob-slide { width: 33.333%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 28px 0; position: relative; overflow: hidden; }
+
+.ob-orb1 { position: absolute; top: -10%; left: -20%; width: 60vw; height: 60vw; background: radial-gradient(circle, rgba(99,102,241,.2), transparent 70%); border-radius: 50%; pointer-events: none; }
+.ob-orb2 { position: absolute; bottom: 10%; right: -20%; width: 50vw; height: 50vw; background: radial-gradient(circle, rgba(16,185,129,.12), transparent 70%); border-radius: 50%; pointer-events: none; }
+
+/* Art area */
+.ob-art { width: 100%; display: flex; align-items: center; justify-content: center; margin-bottom: 36px; position: relative; z-index: 1; min-height: 200px; }
+
+.ob-icon-ring { width: 100px; height: 100px; border-radius: 28px; display: flex; align-items: center; justify-content: center; background: rgba(99,102,241,.1); border: 1.5px solid rgba(99,102,241,.25); box-shadow: 0 20px 60px rgba(99,102,241,.25); animation: breathe 3s ease-in-out infinite; position: relative; z-index: 2; }
+
+.ob-floating-pills { position: absolute; width: 100%; height: 100%; pointer-events: none; }
+.ob-pill { position: absolute; background: var(--s2); border: 1px solid var(--bd2); border-radius: 20px; padding: 6px 13px; font-size: 11px; font-weight: 700; color: var(--t2); animation: floatPill 4s ease-in-out infinite; white-space: nowrap; }
+.ob-pill:nth-child(1) { top: 10%; left: 0%; }
+.ob-pill:nth-child(2) { top: 5%; right: 0%; }
+.ob-pill:nth-child(3) { bottom: 20%; left: 5%; }
+.ob-pill:nth-child(4) { bottom: 15%; right: 0%; }
+@keyframes floatPill { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+/* Chat demo */
+.ob-chat-demo { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 300px; }
+.ob-chat-msg { display: flex; gap: 8px; align-items: flex-end; }
+.ob-chat-msg.user { flex-direction: row-reverse; }
+.ob-chat-av { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--brand), var(--brand2)); display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+.ob-chat-bubble { padding: 10px 13px; border-radius: 14px; font-size: 12px; line-height: 1.55; max-width: 200px; }
+.ob-chat-msg.ai .ob-chat-bubble { background: var(--s2); color: var(--t1); border-radius: 4px 14px 14px 14px; }
+.ob-chat-msg.user .ob-chat-bubble { background: linear-gradient(135deg, var(--brand), var(--brand2)); color: #fff; border-radius: 14px 4px 14px 14px; }
+
+/* Leaderboard demo */
+.ob-leaderboard-demo { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 300px; }
+.ob-lb-row { display: flex; align-items: center; gap: 10px; background: var(--s1); border: 1px solid var(--bd); border-radius: 13px; padding: 11px 13px; }
+.ob-lb-row.gold { border-color: rgba(245,158,11,.3); background: rgba(245,158,11,.06); }
+.ob-lb-row.you { border-color: rgba(99,102,241,.3); background: rgba(99,102,241,.06); animation: pulseRow 2s ease-in-out infinite; }
+@keyframes pulseRow { 0%,100% { opacity: 1; } 50% { opacity: .7; } }
+.ob-lb-rank { font-size: 18px; flex-shrink: 0; }
+.ob-lb-av { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; }
+.ob-lb-info { flex: 1; }
+.ob-lb-name { font-size: 13px; font-weight: 700; }
+.ob-lb-score { font-size: 11px; color: var(--t3); margin-top: 1px; }
+.ob-lb-xp { font-size: 12px; font-weight: 800; color: var(--cyan); }
+
+/* Content */
+.ob-content { text-align: center; position: relative; z-index: 1; }
+.ob-badge { display: inline-block; background: rgba(99,102,241,.12); border: 1px solid rgba(99,102,241,.25); border-radius: 20px; padding: 5px 13px; font-size: 10px; font-weight: 700; letter-spacing: .7px; color: #A5B4FC; text-transform: uppercase; margin-bottom: 14px; }
+.ob-h { font-size: 28px; font-weight: 900; letter-spacing: -1px; line-height: 1.2; margin-bottom: 12px; }
+.ob-p { font-size: 14px; color: var(--t2); line-height: 1.7; max-width: 280px; margin: 0 auto; }
+
+/* Footer */
+.ob-footer { padding: 24px 28px 44px; display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; }
+.ob-dots { display: flex; gap: 7px; }
+.ob-d { width: 8px; height: 8px; border-radius: 4px; background: var(--s3); transition: all .3s; }
+.ob-d.on { width: 24px; background: var(--brand); }
+.ob-next-btn { max-width: 280px; }
+.ob-skip { background: none; border: none; color: var(--t3); font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; padding: 4px; }
+.ob-skip:active { color: var(--t2); }
+
+/* Fix stab for 2-tab auth */
+.atabs { display: flex; background: var(--s2); border-radius: 11px; padding: 3px; margin-bottom: 18px; }
