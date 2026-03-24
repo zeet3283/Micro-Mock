@@ -251,6 +251,28 @@
 <!-- PROFILE (rendered by JS) -->
 <div class="pg" id="pf" style="justify-content:flex-start"></div>
 
+<!-- Add this button - you can hide it or place it in footer -->
+<button id="adminGenerateBtn" style="background-color: #6366f1; color: white; padding: 10px 20px; border-radius: 8px; margin: 10px; border: none; cursor: pointer;">
+  🔧 Admin: Generate Questions
+</button>
+ 
+<!-- Modal for question generation (hidden by default) -->
+<div id="generateModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+  <div style="background: white; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%;">
+    <h3>Generate UPSC Questions</h3>
+    <input type="text" id="topicInput" placeholder="Enter topic (e.g., Indian Constitution)" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px;">
+    <select id="quizSelect" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px;">
+      <option value="">Select Quiz</option>
+    </select>
+    <input type="number" id="questionCount" value="5" min="1" max="20" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px;">
+    <div style="display: flex; gap: 10px; margin-top: 20px;">
+      <button id="confirmGenerateBtn" style="flex: 1; background: #6366f1; color: white; padding: 10px; border: none; border-radius: 6px; cursor: pointer;">Generate</button>
+      <button id="closeModalBtn" style="flex: 1; background: #ef4444; color: white; padding: 10px; border: none; border-radius: 6px; cursor: pointer;">Cancel</button>
+    </div>
+    <div id="generateStatus" style="margin-top: 15px; font-size: 14px; color: #666;"></div>
+  </div>
+</div>
+  
 <script>
 // ── ONBOARDING SLIDER ──
 var obIdx = 0;
