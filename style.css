@@ -32,6 +32,11 @@ body { font-family: -apple-system, 'SF Pro Display', 'Segoe UI', system-ui, sans
 .btn-trial { background: linear-gradient(135deg, #F59E0B, #D97706); color: #fff; box-shadow: 0 8px 24px rgba(245,158,11,.25); }
 .btn-sm { padding: 9px 14px; font-size: 12px; border-radius: 10px; width: auto; }
 
+/* Add to style.css */
+#adminGenerateBtn {
+  display: none !important;
+}
+
 /* ── INPUTS ── */
 .inp-w { position: relative; margin-bottom: 12px; }
 .inp-ic { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); opacity: .35; pointer-events: none; }
