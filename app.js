@@ -47,7 +47,8 @@ function toast(m, t) {
 
 function go(id) {
   document.querySelectorAll('.pg').forEach(function (p) { p.classList.remove('on'); });
-  document.getElementById(id).classList.add('on');
+  var target = document.getElementById(id);
+  if (target) target.classList.add('on');
   if (id === 'lb') renderLB();
   if (id === 'pf') renderPF();
 }
@@ -98,7 +99,6 @@ async function patch(t, q, d) {
 // ── AUTH ──
 async function init() {
   try {
-    // Handle Google OAuth token in URL hash
     var hash = location.hash;
     if (hash && hash.includes('access_token')) {
       var params = new URLSearchParams(hash.slice(1));
@@ -108,28 +108,27 @@ async function init() {
         history.replaceState(null, '', location.pathname);
       }
     }
- 
+
     var token = localStorage.getItem('mm_tk');
     if (!token) { go('lg'); return; }
- 
-    // Verify token with 6s timeout
+
     var ctrl = new AbortController();
-    var tid = setTimeout(function() { ctrl.abort(); }, 6000);
+    var tid = setTimeout(function () { ctrl.abort(); }, 6000);
     var res = await fetch(SB + '/auth/v1/user', {
       headers: Object.assign({}, H, { 'Authorization': 'Bearer ' + token }),
       signal: ctrl.signal
     });
     clearTimeout(tid);
- 
+
     if (!res.ok) { localStorage.removeItem('mm_tk'); go('lg'); return; }
- 
+
     U = await res.json();
- 
+
     var profileArr = await api('users', '?id=eq.' + U.id + '&limit=1');
     if (profileArr && profileArr.length > 0) {
       P = profileArr[0];
       if (!P.name || P.name.trim() === '') { go('ob'); return; }
-      await renderHM(); // go('hm') is now called INSIDE renderHM
+      await renderHM();
     } else {
       go('ob');
     }
@@ -139,36 +138,11 @@ async function init() {
     go('lg');
   }
 }
- 
-// Boot — safe for all DOM states
+
+// ── BOOT ──
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', function() { setTimeout(init, 50); });
+  document.addEventListener('DOMContentLoaded', function () { setTimeout(init, 100); });
 } else {
-  setTimeout(init, 50);
-}
- 
-// ── ALSO FIX renderHM to be defensive ──
-// The go() function needs to handle screens that are rendered by JS
-function go(id) {
-  document.querySelectorAll('.pg').forEach(function(p) {
-    p.classList.remove('on');
-  });
-  var target = document.getElementById(id);
-  if (target) {
-    target.classList.add('on');
-  }
-  if (id === 'lb') renderLB();
-  if (id === 'pf') renderPF();
-}
- 
-// ── BOOT — Replace the last line of app.js ──
-// Wait for DOM to be fully ready before calling init
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(init, 100);
-  });
-} else {
-  // DOM already ready
   setTimeout(init, 100);
 }
 
@@ -228,9 +202,8 @@ async function fOb() {
   } catch (e) {}
   P = { id: U.id, email: U.email, name: nm, exam_target: EX, plan: 'free', xp: 0, level: 1, trial_ends_at: trialEnd };
   toast('Welcome! 7-day Pro trial is active 🎉', 'ok');
-  // ✅ FIX: explicitly switch screen AFTER rendering
   await renderHM();
-  go('hm'); // ← THIS WAS MISSING
+  go('hm');
 }
 
 // ── TRIAL ──
@@ -245,16 +218,14 @@ async function startTrial() {
 
 // ── HOME ──
 async function renderHM() {
-  // ✅ FIX: switch screen immediately — don't wait for data
   go('hm');
- 
+
   var el = document.getElementById('hm');
   var nm = (P && P.name) || 'Aspirant';
   var seed = U ? U.id : nm;
   var q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
   var xp = P && P.xp ? parseInt(P.xp) : 0;
- 
-  // Build trial banner HTML
+
   var trialHTML = '';
   if (P && P.trial_ends_at) {
     var diff = Math.ceil((new Date(P.trial_ends_at) - new Date()) / (1000 * 60 * 60 * 24));
@@ -266,8 +237,7 @@ async function renderHM() {
         + '</div>';
     }
   }
- 
-  // ✅ Show a loading skeleton immediately so user sees progress
+
   el.innerHTML = '<div class="nav">'
     + '<div class="nav-logo">' + LOGO_SVG + '<div class="nav-logo-text">Micro <span>Mock</span></div></div>'
     + '<div class="nav-right"><div class="user-av" id="hav" onclick="go(\'pf\')"><img id="hav-img" src="' + avUrl(seed) + '" alt=""/></div></div>'
@@ -302,24 +272,22 @@ async function renderHM() {
     + '<div class="bn" onclick="go(\'lb\')">' + NAV_SVG.ranks + 'Ranks</div>'
     + '<div class="bn" onclick="go(\'pf\')">' + NAV_SVG.profile + 'Profile</div>'
     + '</div>';
- 
-  // Show AI fab
+
   document.getElementById('ai-fab').style.display = 'flex';
   updLvlUI(xp);
   aiLeft = (P && P.plan === 'pro') ? 999 : 3;
   updateAiCount();
- 
-  // Load live data AFTER screen is already visible
-  api('user_attempts', '?user_id=eq.' + U.id + '&limit=30').then(function(at) {
+
+  api('user_attempts', '?user_id=eq.' + U.id + '&limit=30').then(function (at) {
     if (!at || !at.length) return;
-    var avg = at.reduce(function(s, a) { return s + parseFloat(a.accuracy_pct || 0); }, 0) / at.length;
+    var avg = at.reduce(function (s, a) { return s + parseFloat(a.accuracy_pct || 0); }, 0) / at.length;
     var hac = document.getElementById('hac'); if (hac) hac.textContent = Math.round(avg) + '%';
     var hqz = document.getElementById('hqz'); if (hqz) hqz.textContent = at.length;
     var hst = document.getElementById('hst'); if (hst) hst.textContent = at.length;
   });
- 
+
   var td = new Date().toISOString().split('T')[0];
-  api('quizzes', '?scheduled_for=eq.' + td + '&is_published=eq.true&limit=1').then(function(qz) {
+  api('quizzes', '?scheduled_for=eq.' + td + '&is_published=eq.true&limit=1').then(function (qz) {
     if (!qz || !qz.length) return;
     var htl = document.getElementById('htl'); if (htl) htl.textContent = qz[0].title;
     var hp = document.getElementById('hpill'); if (hp) hp.textContent = qz[0].exam_target;
@@ -675,11 +643,6 @@ async function sendMsg() {
   var msgs = chatMsgs.slice(-6).concat([{ role: 'user', content: msg }]);
 
   try {
-    var EDGE_URL = 'https://xkijsokwttuypxcgppbe.supabase.co/functions/v1/chat';
- 
-// Find the fetch(EDGE_URL...) block inside sendMsg()
-// Replace it with this:
- 
     var r = await fetch(EDGE_URL, {
       method: 'POST',
       headers: {
@@ -693,28 +656,33 @@ async function sendMsg() {
         isPro: P && P.plan === 'pro'
       })
     });
- 
-    if (!r.ok) {
-      removeTyping(typId);
-      addMsg('ai', 'Could not connect to AI. Check your internet and try again.');
-      sending = false;
-      var sendBtn = document.getElementById('chat-send');
-      if (sendBtn) sendBtn.disabled = false;
-      return;
-    }
- 
-    var d = await r.json();
+
     removeTyping(typId);
-    var reply = d.reply || 'Sorry, could not answer right now.';
-    addMsg('ai', reply);
-    chatMsgs.push(
-      { role: 'user', content: msg },
-      { role: 'assistant', content: reply }
-    );
-    if (P && P.plan !== 'pro') {
-      aiLeft = Math.max(0, aiLeft - 1);
-      updateAiCount();
+
+    if (!r.ok) {
+      addMsg('ai', 'Could not connect to AI. Check your internet and try again.');
+    } else {
+      var d = await r.json();
+      var reply = d.reply || 'Sorry, could not answer right now.';
+      addMsg('ai', reply);
+      chatMsgs.push(
+        { role: 'user', content: msg },
+        { role: 'assistant', content: reply }
+      );
+      if (P && P.plan !== 'pro') {
+        aiLeft = Math.max(0, aiLeft - 1);
+        updateAiCount();
+      }
     }
+  } catch (e) {
+    removeTyping(typId);
+    addMsg('ai', 'Something went wrong. Please try again.');
+  } finally {
+    sending = false;
+    var sendBtn2 = document.getElementById('chat-send');
+    if (sendBtn2) sendBtn2.disabled = false;
+  }
+}
 
 function addMsg(role, txt) {
   var msgs = document.getElementById('chat-msgs');
@@ -736,7 +704,6 @@ function addTyping(id) {
   msgs.scrollTop = msgs.scrollHeight;
 }
 
-function removeTyping(id) { var el = document.getElementById(id); if (el) el.remove(); }
-
-// ── BOOT ──
-init();
+function removeTyping(id) {
+  var el = document.getElementById(id); if (el) el.remove();
+}
