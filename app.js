@@ -4,6 +4,43 @@ var KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6
 var H = { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json' };
 var EDGE_URL = 'https://xkijsokwttuypxcgppbe.supabase.co/functions/v1/Chat';
 
+// ── SPARK MASCOT ──
+function sparkSVG(mood, size) {
+  size = size || 64;
+  var id = 'sp_' + mood + '_' + size;
+  var eyes = {
+    happy:     '<circle cx="22" cy="28" r="3.5" fill="#fff"/><circle cx="42" cy="28" r="3.5" fill="#fff"/><circle cx="23" cy="29" r="1.5" fill="#1e1b4b"/><circle cx="43" cy="29" r="1.5" fill="#1e1b4b"/>',
+    celebrate: '<path d="M19 27 Q22 24 25 27" stroke="#fff" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M39 27 Q42 24 45 27" stroke="#fff" stroke-width="2.5" stroke-linecap="round" fill="none"/>',
+    think:     '<circle cx="22" cy="28" r="3.5" fill="#fff"/><circle cx="42" cy="28" r="3.5" fill="#fff"/><circle cx="22" cy="28" r="1.5" fill="#1e1b4b"/><circle cx="43" cy="27" r="1.5" fill="#1e1b4b"/>',
+    neutral:   '<circle cx="22" cy="28" r="3.5" fill="#fff"/><circle cx="42" cy="28" r="3.5" fill="#fff"/><circle cx="23" cy="29" r="1.5" fill="#1e1b4b"/><circle cx="43" cy="29" r="1.5" fill="#1e1b4b"/>'
+  };
+  var mouths = {
+    happy:     '<path d="M26 37 Q32 43 38 37" stroke="#fff" stroke-width="2.5" stroke-linecap="round" fill="none"/>',
+    celebrate: '<path d="M24 36 Q32 44 40 36" stroke="#fff" stroke-width="2.5" stroke-linecap="round" fill="none"/>',
+    think:     '<path d="M26 38 Q32 37 38 38" stroke="#fff" stroke-width="2.5" stroke-linecap="round" fill="none"/>',
+    neutral:   '<path d="M26 38 Q32 40 38 38" stroke="#fff" stroke-width="2.5" stroke-linecap="round" fill="none"/>'
+  };
+  var extras = {
+    happy:     '',
+    celebrate: '<circle cx="14" cy="18" r="3" fill="#F59E0B" opacity=".85"/><circle cx="50" cy="14" r="2.5" fill="#10B981" opacity=".85"/><circle cx="52" cy="30" r="2" fill="#F43F5E" opacity=".8"/><circle cx="12" cy="36" r="2" fill="#22D3EE" opacity=".8"/>',
+    think:     '<circle cx="48" cy="14" r="3" fill="rgba(255,255,255,.18)"/><circle cx="52" cy="22" r="2" fill="rgba(255,255,255,.12)"/><path d="M38 21 Q42 19 46 21" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none"/>',
+    neutral:   ''
+  };
+  var e = eyes[mood] || eyes.neutral;
+  var mo = mouths[mood] || mouths.neutral;
+  var ex = extras[mood] || '';
+  return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">'
+    + '<circle cx="32" cy="32" r="30" fill="url(#' + id + 'a)" opacity=".2"/>'
+    + '<rect x="8" y="8" width="48" height="48" rx="18" fill="url(#' + id + 'b)"/>'
+    + '<path d="M37 33l-4 7h3.5l-2 7 7-9h-4.5z" fill="rgba(255,255,255,.22)"/>'
+    + e + mo + ex
+    + '<ellipse cx="23" cy="16" rx="7" ry="3.5" fill="rgba(255,255,255,.13)" transform="rotate(-20 23 16)"/>'
+    + '<defs>'
+    + '<linearGradient id="' + id + 'a" x1="0" y1="0" x2="64" y2="64"><stop offset="0%" stop-color="#6366F1"/><stop offset="100%" stop-color="#8B5CF6"/></linearGradient>'
+    + '<linearGradient id="' + id + 'b" x1="0" y1="0" x2="64" y2="64"><stop offset="0%" stop-color="#6366F1"/><stop offset="100%" stop-color="#8B5CF6"/></linearGradient>'
+    + '</defs></svg>';
+}
+
 // ── CONSTANTS ──
 var LEVELS = [
   { n: 'Rookie', i: '⚡', min: 0 },
@@ -248,7 +285,7 @@ async function renderHM() {
     + '</div>'
     + '<div class="hbody">'
     + '<div class="greet"><div><div class="greet-sub">Good to see you 👋</div><div class="greet-name">' + nm + '</div></div>'
-    + '<div class="streak-chip"><svg width="13" height="13" viewBox="0 0 24 24" fill="#FCD34D"><path d="M12 2c0 0-6 6-6 12a6 6 0 0 0 12 0c0-6-6-12-6-12z"/></svg><span id="hst">0</span></div></div>'
+    + '<div class="spark-greet-wrap"><div class="spark-greet-mascot">' + sparkSVG('happy', 52) + '</div><div class="streak-chip"><svg width="13" height="13" viewBox="0 0 24 24" fill="#FCD34D"><path d="M12 2c0 0-6 6-6 12a6 6 0 0 0 12 0c0-6-6-12-6-12z"/></svg><span id="hst">0</span></div></div></div>'
     + trialHTML
     + '<div class="xp-bar-wrap"><div class="xp-top"><div class="level-badge"><span id="level-icon">⚡</span><span class="level-name" id="level-nm">Rookie</span></div><span class="xp-count" id="xp-count">' + xp + ' / 100 XP</span></div><div class="xp-track"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div></div>'
     + '<div class="qhero"><div class="qhero-orb1"></div><div class="qhero-orb2"></div>'
@@ -420,7 +457,7 @@ function renderRS(score, acc, sec, xpGained, beatTxt) {
     '<div class="res-wrap">' +
       '<div class="res-main">' +
         '<div class="res-glow"></div>' +
-        '<div class="res-av"><img src="' + avUrl(seed) + '" alt=""/></div>' +
+        '<div class="res-av spark-res-av">' + sparkSVG(score >= 7 ? 'celebrate' : score >= 4 ? 'happy' : 'neutral', 72) + '</div>' +
         '<div class="res-score">' + score + '<span>/10</span></div>' +
         '<div class="res-title">' + title + '</div>' +
         '<div class="res-sub">Here\'s how you did today</div>' +
