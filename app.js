@@ -2,7 +2,7 @@
 var SB = 'https://xkijsokwttuypxcgppbe.supabase.co';
 var KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhraWpzb2t3dHR1eXB4Y2dwcGJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODE4NzcsImV4cCI6MjA4ODY1Nzg3N30.GVnoXPvWaPtStQpqRV5ozUwjb-JJhhl1Iba660Z8aa8';
 var H = { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json' };
-var EDGE_URL = 'https://xkijsokwttuypxcgppbe.supabase.co/functions/v1/Chat';
+var EDGE_URL = 'https://xkijsokwttuypxcgppbe.supabase.co/functions/v1/chat';
 
 // ── CONSTANTS ──
 var LEVELS = [
@@ -110,7 +110,11 @@ async function init() {
     }
 
     var token = localStorage.getItem('mm_tk');
-    if (!token) { go('lg'); return; }
+    if (!token) {
+      var seen = localStorage.getItem('mm_seen');
+      if (seen) { go('lg'); } else { localStorage.setItem('mm_seen', '1'); go('on'); }
+      return;
+    }
 
     var ctrl = new AbortController();
     var tid = setTimeout(function () { ctrl.abort(); }, 6000);
@@ -147,7 +151,7 @@ if (document.readyState === 'loading') {
 }
 
 function stab(t) {
-  document.querySelectorAll('.atab').forEach(function (tab, i) { tab.classList.toggle('on', ['social', 'email', 'phone'][i] === t); });
+  document.querySelectorAll('.atab').forEach(function (tab, i) { tab.classList.toggle('on', ['social', 'email'][i] === t); });
   document.querySelectorAll('.aform').forEach(function (f) { f.classList.remove('on'); });
   document.getElementById('tab-' + t).classList.add('on');
 }
