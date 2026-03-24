@@ -27,7 +27,7 @@
     <div class="chat-handle"></div>
     <div class="chat-hdr">
       <div class="chat-hdr-left">
-        <div class="ai-av spark-chat-av" id="spark-chat-av"></div>
+        <div class="ai-av"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/></svg></div>
         <div><div class="chat-title">Prep Assistant</div><div class="chat-sub">Powered by Groq AI</div></div>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
@@ -88,7 +88,13 @@
     <div class="ob-slide">
       <div class="ob-orb1"></div><div class="ob-orb2"></div>
       <div class="ob-art">
-        <div class="ob-icon-ring" id="spark-ob1"></div>
+        <div class="ob-icon-ring">
+          <svg width="64" height="64" viewBox="0 0 72 72" fill="none">
+            <rect width="72" height="72" rx="20" fill="url(#og1)"/>
+            <path d="M40 14L22 40h14l-4 18 22-24H40L42 14z" fill="white"/>
+            <defs><linearGradient id="og1" x1="0" y1="0" x2="72" y2="72"><stop offset="0%" stop-color="#6366F1"/><stop offset="100%" stop-color="#8B5CF6"/></linearGradient></defs>
+          </svg>
+        </div>
         <div class="ob-floating-pills">
           <div class="ob-pill" style="animation-delay:0s">UPSC 2025</div>
           <div class="ob-pill" style="animation-delay:.4s">SSC CGL</div>
@@ -251,28 +257,6 @@
 <!-- PROFILE (rendered by JS) -->
 <div class="pg" id="pf" style="justify-content:flex-start"></div>
 
-<!-- Update the button to start hidden -->
-<button id="adminGenerateBtn" style="position: fixed; bottom: 20px; right: 20px; background-color: #6366f1; color: white; padding: 12px 20px; border-radius: 50px; border: none; cursor: pointer; font-size: 14px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 999; display: none;">
-  🔧 Generate Questions
-</button>
-  
-<!-- Modal for question generation (hidden by default) -->
-<div id="generateModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
-  <div style="background: white; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%;">
-    <h3>Generate UPSC Questions</h3>
-    <input type="text" id="topicInput" placeholder="Enter topic (e.g., Indian Constitution)" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px;">
-    <select id="quizSelect" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px;">
-      <option value="">Select Quiz</option>
-    </select>
-    <input type="number" id="questionCount" value="5" min="1" max="20" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px;">
-    <div style="display: flex; gap: 10px; margin-top: 20px;">
-      <button id="confirmGenerateBtn" style="flex: 1; background: #6366f1; color: white; padding: 10px; border: none; border-radius: 6px; cursor: pointer;">Generate</button>
-      <button id="closeModalBtn" style="flex: 1; background: #ef4444; color: white; padding: 10px; border: none; border-radius: 6px; cursor: pointer;">Cancel</button>
-    </div>
-    <div id="generateStatus" style="margin-top: 15px; font-size: 14px; color: #666;"></div>
-  </div>
-</div>
-  
 <script>
 // ── ONBOARDING SLIDER ──
 var obIdx = 0;
@@ -291,16 +275,6 @@ function obNext() {
   if (btn) btn.textContent = obIdx === obTotal - 1 ? 'Get Started →' : 'Next →';
 }
 </script>
-<script src="app.js?v=6"></script>
-<script>
-// Init Spark in HTML-rendered locations (after app.js loads sparkSVG)
-document.addEventListener('DOMContentLoaded', function() {
-  // Chat avatar
-  var chatAv = document.getElementById('spark-chat-av');
-  if (chatAv && typeof sparkSVG === 'function') chatAv.innerHTML = sparkSVG('neutral', 36);
-  // Onboarding slide 1
-  var ob1 = document.getElementById('spark-ob1');
-  if (ob1 && typeof sparkSVG === 'function') ob1.innerHTML = sparkSVG('happy', 72);
-});
-</script>
+<script src="app.js?v=5"></script>
+</body>
 </html>
