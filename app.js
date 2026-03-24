@@ -749,165 +749,50 @@ function removeTyping(id) {
   var el = document.getElementById(id); if (el) el.remove();
 }
 // ============================================
-// ADMIN: AI Question Generator (Debug Version)
+// ADMIN: AI Question Generator
 // ============================================
  
-const ADMIN_EMAIL = 'thompsonsuppressor@gmail.com'; // REPLACE WITH YOUR ACTUAL EMAIL
+const ADMIN_EMAIL = 'thompsonsuppressor@gmail.com'; // REPLACE WITH YOUR GMAIL
  
-// Debug function to log everything
-function debugLog(message, data = null) {
-  console.log(`[Admin Debug] ${message}`, data ? data : '');
-}
- 
-// Function to check if current user is admin
-async function isAdmin() {
-  try {
-    const { data: { user }, error } = await supabase.auth.getUser();
-    
-    debugLog('getUser response:', { user, error });
-    
-    if (error) {
-      debugLog('Auth error:', error);
-      return false;
-    }
-    
-    if (!user) {
-      debugLog('No user found');
-      return false;
-    }
-    
-    debugLog('User email:', user.email);
-    debugLog('Admin email:', ADMIN_EMAIL);
-    debugLog('Is match?', user.email === ADMIN_EMAIL);
-    
-    return user.email === ADMIN_EMAIL;
-  } catch (error) {
-    debugLog('isAdmin error:', error);
-    return false;
-  }
-}
- 
-// Function to check if user is logged in
-async function isLoggedIn() {
-  const { data: { user } } = await supabase.auth.getUser();
-  debugLog('isLoggedIn:', user ? `Yes (${user.email})` : 'No');
-  return user !== null;
-}
- 
-// Function to load quizzes for dropdown
-async function loadQuizzes() {
-  const select = document.getElementById('quizSelect');
-  if (!select) return;
-  
-  select.innerHTML = '<option value="">Loading...</option>';
-  
-  const { data: quizzes, error } = await supabase
-    .from('quizzes')
-    .select('id, title')
-    .limit(100);
-  
-  if (error) {
-    console.error('Error loading quizzes:', error);
-    select.innerHTML = '<option value="">Error loading quizzes</option>';
-    return [];
-  }
-  
-  if (!quizzes || quizzes.length === 0) {
-    select.innerHTML = '<option value="">No quizzes found. Create one first!</option>';
-    return [];
-  }
-  
-  select.innerHTML = '<option value="">-- Select a Quiz --</option>' +
-    quizzes.map(q => `<option value="${q.id}">${q.title}</option>`).join('');
-  
-  return quizzes;
-}
- 
-// Function to generate questions using Edge Function
-async function generateQuestions(topic, quizId, count) {
-  const statusDiv = document.getElementById('generateStatus');
-  if (!statusDiv) return;
-  
-  statusDiv.innerHTML = '⏳ AI is creating questions... (15-20 seconds)';
-  statusDiv.style.color = '#6366f1';
-  
-  try {
-    const { data, error } = await supabase.functions.invoke('generate-questions', {
-      body: { topic, quizId, count }
-    });
-    
-    if (error) throw new Error(error.message);
-    if (!data.success) throw new Error(data.error || 'Generation failed');
-    
-    statusDiv.innerHTML = `✅ Success! ${data.saved} questions added to "${topic}". ${data.errors ? `(${data.errors.length} failed)` : ''}`;
-    statusDiv.style.color = '#10b981';
-    
-    setTimeout(() => {
-      if (typeof loadCurrentQuiz === 'function') loadCurrentQuiz();
-      if (typeof displayQuizzes === 'function') displayQuizzes();
-    }, 1000);
-    
-  } catch (error) {
-    console.error('Generation error:', error);
-    statusDiv.innerHTML = `❌ Error: ${error.message}`;
-    statusDiv.style.color = '#ef4444';
-  }
-}
- 
-// Initialize admin features
-async function initAdminFeatures() {
-  debugLog('initAdminFeatures called');
-  
+// Wait for DOM and Supabase to be ready
+function initAdmin() {
   const adminBtn = document.getElementById('adminGenerateBtn');
   if (!adminBtn) {
-    debugLog('Admin button not found in DOM');
-    return;
+    console.log('[Admin] Button not found in DOM');
+    return false;
   }
   
-  debugLog('Admin button found, checking login status...');
-  
-  // First check if user is logged in
-  const loggedIn = await isLoggedIn();
-  debugLog('Logged in status:', loggedIn);
-  
-  if (!loggedIn) {
-    debugLog('User not logged in - hiding button');
+  // Check if user is logged in
+  if (!U || !P) {
+    console.log('[Admin] User not logged in, hiding button');
     adminBtn.style.display = 'none';
-    return;
+    return false;
   }
   
-  // User is logged in, check if they are admin
-  const isUserAdmin = await isAdmin();
-  debugLog('Is admin check result:', isUserAdmin);
+  console.log('[Admin] Current user email:', U.email);
+  console.log('[Admin] Admin email:', ADMIN_EMAIL);
   
-  if (isUserAdmin) {
-    debugLog('✅ Admin user confirmed - SHOWING button');
+  if (U.email === ADMIN_EMAIL) {
+    console.log('[Admin] ✅ Admin confirmed - showing button');
     adminBtn.style.display = 'block';
     
-    // Setup button click handler
-    adminBtn.onclick = async () => {
-      debugLog('Admin button clicked');
-      await loadQuizzes();
-      const modal = document.getElementById('generateModal');
-      if (modal) {
-        modal.style.display = 'flex';
-        document.getElementById('topicInput').value = '';
-        document.getElementById('questionCount').value = '5';
-        document.getElementById('generateStatus').innerHTML = '';
-      }
+    // Setup button click
+    adminBtn.onclick = () => {
+      console.log('[Admin] Button clicked, showing modal');
+      document.getElementById('generateModal').style.display = 'flex';
+      loadQuizzesForAdmin();
     };
     
-    // Setup modal handlers
+    // Setup modal close
     const closeBtn = document.getElementById('closeModalBtn');
-    const confirmBtn = document.getElementById('confirmGenerateBtn');
-    const modal = document.getElementById('generateModal');
-    
     if (closeBtn) {
       closeBtn.onclick = () => {
-        if (modal) modal.style.display = 'none';
+        document.getElementById('generateModal').style.display = 'none';
       };
     }
     
+    // Setup generate button
+    const confirmBtn = document.getElementById('confirmGenerateBtn');
     if (confirmBtn) {
       confirmBtn.onclick = async () => {
         const topic = document.getElementById('topicInput').value.trim();
@@ -927,14 +812,49 @@ async function initAdminFeatures() {
           return;
         }
         
-        confirmBtn.disabled = true;
-        confirmBtn.textContent = 'Generating...';
-        await generateQuestions(topic, quizId, count);
-        confirmBtn.disabled = false;
-        confirmBtn.textContent = 'Generate Questions';
+        const btn = confirmBtn;
+        const status = document.getElementById('generateStatus');
+        
+        btn.disabled = true;
+        btn.textContent = 'Generating...';
+        status.innerHTML = '⏳ AI is creating questions... (15-20 seconds)';
+        status.style.color = '#6366f1';
+        
+        try {
+          const { data, error } = await supabase.functions.invoke('generate-questions', {
+            body: { topic, quizId, count }
+          });
+          
+          if (error) throw new Error(error.message);
+          if (!data.success) throw new Error(data.error || 'Generation failed');
+          
+          status.innerHTML = `✅ Success! ${data.saved} questions added to "${topic}". ${data.errors ? `(${data.errors.length} failed)` : ''}`;
+          status.style.color = '#10b981';
+          
+          // Clear inputs
+          document.getElementById('topicInput').value = '';
+          document.getElementById('questionCount').value = '5';
+          
+          // Refresh if needed
+          setTimeout(() => {
+            if (document.getElementById('qz').classList.contains('on')) {
+              if (typeof loadCurrentQuiz === 'function') loadCurrentQuiz();
+            }
+          }, 1000);
+          
+        } catch (err) {
+          console.error('Generation error:', err);
+          status.innerHTML = `❌ Error: ${err.message}`;
+          status.style.color = '#ef4444';
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Generate Questions';
+        }
       };
     }
     
+    // Close modal when clicking outside
+    const modal = document.getElementById('generateModal');
     if (modal) {
       modal.onclick = (e) => {
         if (e.target === modal) {
@@ -944,45 +864,74 @@ async function initAdminFeatures() {
     }
     
   } else {
-    debugLog('❌ User is NOT admin - hiding button');
+    console.log('[Admin] User is not admin');
     adminBtn.style.display = 'none';
+  }
+  
+  return true;
+}
+ 
+// Load quizzes for admin dropdown
+async function loadQuizzesForAdmin() {
+  const select = document.getElementById('quizSelect');
+  if (!select) return;
+  
+  select.innerHTML = '<option>Loading quizzes...</option>';
+  
+  try {
+    const { data: quizzes, error } = await supabase
+      .from('quizzes')
+      .select('id, title');
+    
+    if (error) throw error;
+    
+    if (!quizzes || quizzes.length === 0) {
+      select.innerHTML = '<option>No quizzes found. Create one first!</option>';
+      return;
+    }
+    
+    select.innerHTML = '<option value="">-- Select a Quiz --</option>';
+    quizzes.forEach(q => {
+      select.innerHTML += `<option value="${q.id}">${q.title}</option>`;
+    });
+    
+  } catch (err) {
+    console.error('Error loading quizzes:', err);
+    select.innerHTML = '<option>Error loading quizzes</option>';
   }
 }
  
-// Set up auth listener
-if (typeof supabase !== 'undefined') {
-  debugLog('Setting up auth listener');
-  
-  // Listen for auth changes
-  supabase.auth.onAuthStateChange((event, session) => {
-    debugLog('Auth state changed:', event);
-    debugLog('Session:', session);
-    
-    if (event === 'SIGNED_IN') {
-      debugLog('User signed in, waiting 1 second before init...');
-      setTimeout(() => initAdminFeatures(), 1000);
-    } else if (event === 'SIGNED_OUT') {
-      debugLog('User signed out, hiding button');
-      const adminBtn = document.getElementById('adminGenerateBtn');
-      if (adminBtn) adminBtn.style.display = 'none';
-    } else if (event === 'INITIAL_SESSION') {
-      debugLog('Initial session, checking...');
-      setTimeout(() => initAdminFeatures(), 1000);
-    }
-  });
-  
-  // Also check on page load
-  debugLog('Checking on page load...');
-  setTimeout(() => initAdminFeatures(), 2000);
-  
-  // Expose debug function to console
-  window.debugAdmin = async () => {
-    debugLog('Manual debug triggered');
-    await initAdminFeatures();
-    const user = await supabase.auth.getUser();
-    console.log('Current user:', user);
+// Override the existing go function to re-check admin on page changes
+const originalGo = go;
+go = function(id) {
+  originalGo(id);
+  // Re-check admin visibility after page change
+  setTimeout(initAdmin, 100);
+};
+ 
+// Initialize admin after user is loaded
+// The existing init() function already sets U and P
+// We'll hook into the existing flow
+ 
+// Override the renderHM function to init admin after home renders
+const originalRenderHM = renderHM;
+renderHM = async function() {
+  await originalRenderHM();
+  setTimeout(initAdmin, 500);
+};
+ 
+// Also check after profile loads
+const originalRenderPF = typeof renderPF === 'function' ? renderPF : function() {};
+if (typeof renderPF === 'function') {
+  renderPF = async function() {
+    await originalRenderPF();
+    setTimeout(initAdmin, 500);
   };
-} else {
-  debugLog('Supabase not found!');
 }
  
+// Check admin on page load after user is set
+setInterval(() => {
+  if (U && P) {
+    initAdmin();
+  }
+}, 2000);
