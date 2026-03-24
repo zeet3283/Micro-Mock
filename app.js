@@ -749,20 +749,35 @@ function removeTyping(id) {
   var el = document.getElementById(id); if (el) el.remove();
 }
 // ============================================
-// ADMIN: AI Question Generator (Using Edge Function)
+// ADMIN: AI Question Generator (Updated for Google Auth)
 // ============================================
  
-const ADMIN_EMAIL = 'your-email@example.com'; // Replace with your email
+const ADMIN_EMAIL = 'thompsonsuppressor@gmail.com'; // Replace with your Google email address
  
 // Function to check if current user is admin
 async function isAdmin() {
   try {
     const { data: { user } } = await supabase.auth.getUser();
-    return user?.email === ADMIN_EMAIL;
+    
+    // Only return true if:
+    // 1. User exists
+    // 2. User email matches admin email
+    // 3. User is actually logged in (not null)
+    if (user && user.email === ADMIN_EMAIL) {
+      console.log('Admin user detected:', user.email);
+      return true;
+    }
+    return false;
   } catch (error) {
     console.error('Auth check error:', error);
     return false;
   }
+}
+ 
+// Function to check if user is logged in
+async function isLoggedIn() {
+  const { data: { user } } = await supabase.auth.getUser();
+  return user !== null;
 }
  
 // Function to load quizzes for dropdown
@@ -788,13 +803,13 @@ async function loadQuizzes() {
     return [];
   }
   
-  select.innerHTML = '<option value="">-- Select a Quiz --</option>' +
+  select.innerHTML = '<option value="">-- Select a Quiz --</option>' + 
     quizzes.map(q => `<option value="${q.id}">${q.title}</option>`).join('');
   
   return quizzes;
 }
  
-// Function to generate questions using Edge Function (SECURE)
+// Function to generate questions using Edge Function
 async function generateQuestions(topic, quizId, count) {
   const statusDiv = document.getElementById('generateStatus');
   if (!statusDiv) return;
@@ -803,7 +818,7 @@ async function generateQuestions(topic, quizId, count) {
   statusDiv.style.color = '#6366f1';
   
   try {
-    // Call Supabase Edge Function instead of Groq directly
+    // Call Supabase Edge Function
     const { data, error } = await supabase.functions.invoke('generate-questions', {
       body: { topic, quizId, count }
     });
@@ -832,16 +847,32 @@ async function generateQuestions(topic, quizId, count) {
   }
 }
  
-// Initialize admin features
+// Initialize admin features (only when user is logged in)
 async function initAdminFeatures() {
   const adminBtn = document.getElementById('adminGenerateBtn');
   if (!adminBtn) return;
   
+  // First check if user is logged in
+  const loggedIn = await isLoggedIn();
+  
+  if (!loggedIn) {
+    // User not logged in - hide the button
+    adminBtn.style.display = 'none';
+    return;
+  }
+  
+  // User is logged in, check if they are admin
   const isUserAdmin = await isAdmin();
   
   if (isUserAdmin) {
+    console.log('Showing admin button for:', await supabase.auth.getUser().then(res => res.data.user?.email));
     adminBtn.style.display = 'block';
-    adminBtn.addEventListener('click', async () => {
+    
+    // Remove existing event listeners to avoid duplicates
+    const newAdminBtn = adminBtn.cloneNode(true);
+    adminBtn.parentNode.replaceChild(newAdminBtn, adminBtn);
+    
+    newAdminBtn.addEventListener('click', async () => {
       await loadQuizzes();
       const modal = document.getElementById('generateModal');
       if (modal) {
@@ -858,13 +889,21 @@ async function initAdminFeatures() {
     const modal = document.getElementById('generateModal');
     
     if (closeBtn) {
-      closeBtn.addEventListener('click', () => {
+      // Remove existing listeners
+      const newCloseBtn = closeBtn.cloneNode(true);
+      closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+      
+      newCloseBtn.addEventListener('click', () => {
         if (modal) modal.style.display = 'none';
       });
     }
     
     if (confirmBtn) {
-      confirmBtn.addEventListener('click', async () => {
+      // Remove existing listeners
+      const newConfirmBtn = confirmBtn.cloneNode(true);
+      confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+      
+      newConfirmBtn.addEventListener('click', async () => {
         const topic = document.getElementById('topicInput').value.trim();
         const quizId = document.getElementById('quizSelect').value;
         const count = parseInt(document.getElementById('questionCount').value);
@@ -882,13 +921,13 @@ async function initAdminFeatures() {
           return;
         }
         
-        confirmBtn.disabled = true;
-        confirmBtn.textContent = 'Generating...';
+        newConfirmBtn.disabled = true;
+        newConfirmBtn.textContent = 'Generating...';
         
         await generateQuestions(topic, quizId, count);
         
-        confirmBtn.disabled = false;
-        confirmBtn.textContent = 'Generate Questions';
+        newConfirmBtn.disabled = false;
+        newConfirmBtn.textContent = 'Generate Questions';
       });
     }
     
@@ -900,19 +939,28 @@ async function initAdminFeatures() {
       });
     }
   } else {
+    // User is logged in but not admin
     adminBtn.style.display = 'none';
+    console.log('User is not admin. Button hidden.');
   }
 }
  
-// Wait for Supabase to be ready
+// Listen for auth state changes (for Google Sign In)
 if (typeof supabase !== 'undefined') {
-  // Check when user is logged in
+  // Initialize when auth state changes
   supabase.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+    console.log('Auth state changed:', event);
+    if (event === 'SIGNED_IN') {
+      // User just signed in via Google
       setTimeout(() => initAdminFeatures(), 1000);
+    } else if (event === 'SIGNED_OUT') {
+      // User signed out - hide button immediately
+      const adminBtn = document.getElementById('adminGenerateBtn');
+      if (adminBtn) adminBtn.style.display = 'none';
     }
   });
   
-  // Also try immediately if already logged in
+  // Also check on page load
   setTimeout(() => initAdminFeatures(), 2000);
 }
+ 
