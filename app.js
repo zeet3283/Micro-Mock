@@ -748,3 +748,171 @@ function addTyping(id) {
 function removeTyping(id) {
   var el = document.getElementById(id); if (el) el.remove();
 }
+// ============================================
+// ADMIN: AI Question Generator (Using Edge Function)
+// ============================================
+ 
+const ADMIN_EMAIL = 'your-email@example.com'; // Replace with your email
+ 
+// Function to check if current user is admin
+async function isAdmin() {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    return user?.email === ADMIN_EMAIL;
+  } catch (error) {
+    console.error('Auth check error:', error);
+    return false;
+  }
+}
+ 
+// Function to load quizzes for dropdown
+async function loadQuizzes() {
+  const select = document.getElementById('quizSelect');
+  if (!select) return;
+  
+  select.innerHTML = '<option value="">Loading...</option>';
+  
+  const { data: quizzes, error } = await supabase
+    .from('quizzes')
+    .select('id, title')
+    .limit(100);
+  
+  if (error) {
+    console.error('Error loading quizzes:', error);
+    select.innerHTML = '<option value="">Error loading quizzes</option>';
+    return [];
+  }
+  
+  if (!quizzes || quizzes.length === 0) {
+    select.innerHTML = '<option value="">No quizzes found. Create one first!</option>';
+    return [];
+  }
+  
+  select.innerHTML = '<option value="">-- Select a Quiz --</option>' +
+    quizzes.map(q => `<option value="${q.id}">${q.title}</option>`).join('');
+  
+  return quizzes;
+}
+ 
+// Function to generate questions using Edge Function (SECURE)
+async function generateQuestions(topic, quizId, count) {
+  const statusDiv = document.getElementById('generateStatus');
+  if (!statusDiv) return;
+  
+  statusDiv.innerHTML = '⏳ AI is creating questions... (15-20 seconds)';
+  statusDiv.style.color = '#6366f1';
+  
+  try {
+    // Call Supabase Edge Function instead of Groq directly
+    const { data, error } = await supabase.functions.invoke('generate-questions', {
+      body: { topic, quizId, count }
+    });
+    
+    if (error) {
+      throw new Error(error.message);
+    }
+    
+    if (!data.success) {
+      throw new Error(data.error || 'Generation failed');
+    }
+    
+    statusDiv.innerHTML = `✅ Success! ${data.saved} questions added to "${topic}". ${data.errors ? `(${data.errors.length} failed)` : ''}`;
+    statusDiv.style.color = '#10b981';
+    
+    // Refresh quiz if your app has a refresh function
+    setTimeout(() => {
+      if (typeof loadCurrentQuiz === 'function') loadCurrentQuiz();
+      if (typeof displayQuizzes === 'function') displayQuizzes();
+    }, 1000);
+    
+  } catch (error) {
+    console.error('Generation error:', error);
+    statusDiv.innerHTML = `❌ Error: ${error.message}`;
+    statusDiv.style.color = '#ef4444';
+  }
+}
+ 
+// Initialize admin features
+async function initAdminFeatures() {
+  const adminBtn = document.getElementById('adminGenerateBtn');
+  if (!adminBtn) return;
+  
+  const isUserAdmin = await isAdmin();
+  
+  if (isUserAdmin) {
+    adminBtn.style.display = 'block';
+    adminBtn.addEventListener('click', async () => {
+      await loadQuizzes();
+      const modal = document.getElementById('generateModal');
+      if (modal) {
+        modal.style.display = 'flex';
+        document.getElementById('topicInput').value = '';
+        document.getElementById('questionCount').value = '5';
+        document.getElementById('generateStatus').innerHTML = '';
+      }
+    });
+    
+    // Modal event handlers
+    const closeBtn = document.getElementById('closeModalBtn');
+    const confirmBtn = document.getElementById('confirmGenerateBtn');
+    const modal = document.getElementById('generateModal');
+    
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        if (modal) modal.style.display = 'none';
+      });
+    }
+    
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', async () => {
+        const topic = document.getElementById('topicInput').value.trim();
+        const quizId = document.getElementById('quizSelect').value;
+        const count = parseInt(document.getElementById('questionCount').value);
+        
+        if (!topic) {
+          alert('Please enter a topic');
+          return;
+        }
+        if (!quizId) {
+          alert('Please select a quiz');
+          return;
+        }
+        if (count < 1 || count > 20) {
+          alert('Please enter a number between 1 and 20');
+          return;
+        }
+        
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Generating...';
+        
+        await generateQuestions(topic, quizId, count);
+        
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Generate Questions';
+      });
+    }
+    
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+    }
+  } else {
+    adminBtn.style.display = 'none';
+  }
+}
+ 
+// Wait for Supabase to be ready
+if (typeof supabase !== 'undefined') {
+  // Check when user is logged in
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+      setTimeout(() => initAdminFeatures(), 1000);
+    }
+  });
+  
+  // Also try immediately if already logged in
+  setTimeout(() => initAdminFeatures(), 2000);
+}
