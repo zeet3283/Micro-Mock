@@ -67,6 +67,7 @@ var LOGO_SVG = '<svg width="26" height="26" viewBox="0 0 72 72" fill="none"><rec
 // ── STATE ──
 var U = null, P = null;
 var QS = [], QI = 0, SC = 0, DN = false, tmr = null, TL = 600, T0 = null, EX = null;
+var isGenQuiz = false;
 var chatCtx = null, chatMsgs = [], aiLeft = 3, sending = false;
 var tt, tto;
 
@@ -239,10 +240,11 @@ function renderMGForm(remaining) {
     + '<div class="mg-count-row">'
     + '<div style="font-size:13px;font-weight:700;color:var(--t2)">Number of questions</div>'
     + '<div class="mg-count-btns">'
-    + '<button class="mg-cnt" onclick="setMgCount(3)">3</button>'
     + '<button class="mg-cnt on" onclick="setMgCount(5)">5</button>'
-    + '<button class="mg-cnt" onclick="setMgCount(8)">8</button>'
     + '<button class="mg-cnt" onclick="setMgCount(10)">10</button>'
+    + '<button class="mg-cnt" onclick="setMgCount(15)">15</button>'
+    + '<button class="mg-cnt" onclick="setMgCount(20)">20</button>'
+    + '<button class="mg-cnt" onclick="setMgCount(25)">25</button>'
     + '</div>'
     + '</div>'
     + '<button class="btn btn-p" id="mg-gen-btn" onclick="generateMCQs()" style="margin-bottom:16px">'
@@ -436,8 +438,9 @@ async function generateMCQs() {
     // Update local count
     if (P) P.mcq_gen_count = (P.mcq_gen_count || 0) + 1;
 
-    renderGenResults(genResults, d.remaining);
-    toast(genResults.length + ' MCQs generated! ⚡', 'ok');
+    // Show ready screen — don't reveal answers, launch as quiz
+    showMGReady(genResults, d.remaining);
+    toast(genResults.length + ' MCQs ready! ⚡', 'ok');
 
   } catch(e) {
     toast('Something went wrong. Try again.', 'err');
@@ -447,70 +450,33 @@ async function generateMCQs() {
   if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>Generate MCQs'; }
 }
 
-function renderGenResults(mcqs, remaining) {
+function showMGReady(mcqs, remaining) {
   var el = document.getElementById('mg-results');
   if (!el) return;
-
-  var html = '<div class="mg-res-hdr">'
-    + '<div class="mg-res-title">' + sparkSVG('happy', 28) + '<span>' + mcqs.length + ' MCQs Generated</span></div>'
-    + '<div style="font-size:12px;color:var(--t3)">' + (remaining !== undefined ? remaining + ' generations left' : '') + '</div>'
+  var subjects = [...new Set(mcqs.map(function(q) { return q.subject || 'General'; }))].slice(0, 3);
+  el.innerHTML = '<div class="mg-ready">'
+    + '<div class="mg-ready-spark">' + sparkSVG('celebrate', 56) + '</div>'
+    + '<div class="mg-ready-t">Your quiz is ready! 🎯</div>'
+    + '<div class="mg-ready-s">' + mcqs.length + ' questions generated from your content</div>'
+    + '<div class="mg-ready-pills">'
+    + subjects.map(function(s) { return '<div class="mg-ready-pill">📚 ' + s + '</div>'; }).join('')
+    + '<div class="mg-ready-pill">⏱ ~' + Math.ceil(mcqs.length * 1.2) + ' min</div>'
     + '</div>'
-    + '<div style="font-size:12px;color:var(--t2);margin-bottom:12px">Select questions to save to your practice bank:</div>';
-
-  mcqs.forEach(function(q, i) {
-    var diffColor = q.difficulty === 'hard' ? '#F43F5E' : q.difficulty === 'easy' ? '#10B981' : '#F59E0B';
-    html += '<div class="mg-q-card" id="mgq-' + i + '">'
-      + '<div class="mg-q-top">'
-      + '<label class="mg-check-wrap"><input type="checkbox" class="mg-check" id="mgc-' + i + '" checked/><span class="mg-checkmark"></span></label>'
-      + '<div class="mg-q-meta"><span class="mg-q-subj">' + (q.subject || 'General') + '</span><span class="mg-q-diff" style="color:' + diffColor + '">' + (q.difficulty || 'medium') + '</span></div>'
-      + '</div>'
-      + '<div class="mg-q-txt">' + (i+1) + '. ' + q.question + '</div>'
-      + '<div class="mg-q-opts">'
-      + '<div class="mg-opt"><span class="mg-opt-l">A</span>' + q.option_a + '</div>'
-      + '<div class="mg-opt"><span class="mg-opt-l">B</span>' + q.option_b + '</div>'
-      + '<div class="mg-opt"><span class="mg-opt-l">C</span>' + q.option_c + '</div>'
-      + '<div class="mg-opt"><span class="mg-opt-l">D</span>' + q.option_d + '</div>'
-      + '</div>'
-      + '<div class="mg-q-ans">Answer: <strong>' + q.correct_option + '</strong> · ' + (q.explanation || '') + '</div>'
-      + '</div>';
-  });
-
-  html += '<div class="mg-save-row">'
-    + '<button class="btn btn-g" onclick="toggleAllMCQs()" style="flex:1;padding:13px">Select All</button>'
-    + '<button class="btn btn-p" onclick="saveSelectedMCQs()" style="flex:2;padding:13px">Save Selected →</button>'
+    + '<button class="btn btn-p" onclick="startGenQuiz()" style="margin-bottom:10px">'
+    + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>'
+    + 'Start Quiz Now</button>'
+    + '<div style="font-size:12px;color:var(--t3);margin-top:4px">' + (remaining !== undefined ? remaining + ' generations remaining' : '') + '</div>'
     + '</div>';
-
-  el.innerHTML = html;
   el.scrollIntoView({ behavior: 'smooth' });
 }
 
-function toggleAllMCQs() {
-  var boxes = document.querySelectorAll('.mg-check');
-  var allChecked = Array.from(boxes).every(function(b) { return b.checked; });
-  boxes.forEach(function(b) { b.checked = !allChecked; });
-  event.target.textContent = allChecked ? 'Select All' : 'Deselect All';
-}
-
-async function saveSelectedMCQs() {
-  var selected = [];
-  genResults.forEach(function(q, i) {
-    var cb = document.getElementById('mgc-' + i);
-    if (cb && cb.checked) selected.push(q);
-  });
-
-  if (!selected.length) { toast('Select at least one question', 'err'); return; }
-
-  var btn = event.target;
-  btn.disabled = true; btn.textContent = 'Saving...';
-
-  // Get today's quiz id or create a personal one
-  var td = new Date().toISOString().split('T')[0];
-  var qz = await api('quizzes', '?is_published=eq.true&order=created_at.desc&limit=1');
-  var quizId = qz && qz.length ? qz[0].id : null;
-
-  var toSave = selected.map(function(q) {
+function startGenQuiz() {
+  if (!genResults.length) return;
+  // Reuse the full quiz engine with generated questions
+  QS = genResults.map(function(q, i) {
     return {
-      quiz_id: quizId,
+      id: 'gen_' + Date.now() + '_' + i,
+      quiz_id: 'generated',
       question_text: q.question,
       option_a: q.option_a,
       option_b: q.option_b,
@@ -520,33 +486,44 @@ async function saveSelectedMCQs() {
       explanation: q.explanation || '',
       subject: q.subject || 'General',
       difficulty: q.difficulty || 'medium',
-      created_by: U ? U.id : null,
-      is_user_generated: true
+      is_generated: true
     };
   });
+  QI = 0; SC = 0; TL = QS.length * 60; T0 = Date.now(); chatCtx = null;
+  isGenQuiz = true;
+  renderQZ(); rQ(); sTmr();
+}
 
-  var r = await fetch(SB + '/rest/v1/questions', {
-    method: 'POST',
-    headers: Object.assign({}, H, { 'Prefer': 'return=minimal' }),
-    body: JSON.stringify(toSave)
-  });
+// ── GENERATED QUIZ HISTORY (for profile) ──
+var genHistory = [];
 
-  if (r.ok) {
-    toast(selected.length + ' questions saved! ✓', 'ok');
-    btn.textContent = '✓ Saved!';
-    // Dim saved cards
-    selected.forEach(function(q, i) {
-      genResults.forEach(function(orig, j) {
-        if (orig === q) {
-          var card = document.getElementById('mgq-' + j);
-          if (card) { card.style.opacity = '.45'; card.style.pointerEvents = 'none'; }
-        }
-      });
-    });
-  } else {
-    toast('Save failed. Try again.', 'err');
-    btn.disabled = false; btn.textContent = 'Save Selected →';
+async function loadGenHistory() {
+  if (!U) return;
+  var data = await api('user_attempts', '?user_id=eq.' + U.id + '&is_generated=eq.true&order=created_at.desc&limit=10');
+  genHistory = data || [];
+  return genHistory;
+}
+
+function renderGenHistory(attempts) {
+  if (!attempts || !attempts.length) {
+    return '<div style="text-align:center;padding:20px;color:var(--t3);font-size:13px">No generated quizzes yet.<br/>Try the MCQ Generator!</div>';
   }
+  return attempts.map(function(a) {
+    var date = new Date(a.created_at);
+    var dateStr = date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+    var emoji = a.accuracy_pct >= 70 ? '🏆' : a.accuracy_pct >= 50 ? '📈' : '📚';
+    return '<div class="gen-hist-card" onclick="toast(\'Quiz details coming soon!\', \'ok\')">'
+      + '<div class="gen-hist-icon">' + emoji + '</div>'
+      + '<div class="gen-hist-info">'
+      + '<div class="gen-hist-name">Generated Quiz</div>'
+      + '<div class="gen-hist-meta">' + dateStr + ' · ' + a.total_questions + ' questions · ' + a.time_taken_sec + 's</div>'
+      + '</div>'
+      + '<div class="gen-hist-score">'
+      + '<div class="gen-hist-val">' + a.score + '/' + a.total_questions + '</div>'
+      + '<div class="gen-hist-lbl">' + a.accuracy_pct + '%</div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
 }
 
 // ── BOOT ──
@@ -787,20 +764,24 @@ async function eQz() {
   var sec = Math.round((Date.now() - T0) / 1000);
   var acc = Math.round(SC / QS.length * 100);
   var xpGained = SC * 10 + (QS.length - SC) * 2;
-  await ins('user_attempts', { user_id: U.id, quiz_id: QS[0].quiz_id, score: SC, total_questions: QS.length, accuracy_pct: acc, time_taken_sec: sec });
+  await ins('user_attempts', { user_id: U.id, quiz_id: isGenQuiz ? null : QS[0].quiz_id, score: SC, total_questions: QS.length, accuracy_pct: acc, time_taken_sec: sec, is_generated: isGenQuiz });
   var newXp = (P && P.xp ? parseInt(P.xp) : 0) + xpGained;
   await patch('users', '?id=eq.' + U.id, { xp: newXp });
   if (P) P.xp = newXp;
 
-  var beatTxt = 'First attempt today! 🌟';
-  var all = await api('user_attempts', '?quiz_id=eq.' + QS[0].quiz_id);
-  if (all && all.length > 1) {
-    var beat = all.filter(function (a) { return parseFloat(a.score) < SC; }).length;
-    beatTxt = 'Beat ' + Math.round(beat / (all.length - 1) * 100) + '% today';
+  var beatTxt = isGenQuiz ? 'Custom quiz complete! 🌟' : 'First attempt today! 🌟';
+  if (!isGenQuiz) {
+    var all = await api('user_attempts', '?quiz_id=eq.' + QS[0].quiz_id);
+    if (all && all.length > 1) {
+      var beat = all.filter(function (a) { return parseFloat(a.score) < SC; }).length;
+      beatTxt = 'Beat ' + Math.round(beat / (all.length - 1) * 100) + '% today';
+    }
   }
 
-  renderRS(SC, acc, sec, xpGained, beatTxt);
-  if (SC >= 7) confetti();
+  var wasGen = isGenQuiz;
+  isGenQuiz = false;
+  renderRS(SC, acc, sec, xpGained, beatTxt, wasGen);
+  if (SC >= Math.ceil(QS.length * 0.7)) confetti();
   chatCtx = null;
   go('rs');
 }
@@ -818,7 +799,7 @@ function sTmr() {
 }
 
 // ── RESULTS ──
-function renderRS(score, acc, sec, xpGained, beatTxt) {
+function renderRS(score, acc, sec, xpGained, beatTxt, wasGen) {
   var seed = U ? U.id : 'user';
   var title = score >= 8 ? 'Outstanding!' : score >= 6 ? 'Great Job!' : score >= 4 ? 'Keep Going!' : 'Keep Practicing!';
   var el = document.getElementById('rs');
@@ -846,7 +827,7 @@ function renderRS(score, acc, sec, xpGained, beatTxt) {
         '<button class="btn btn-trial" onclick="startTrial()" style="margin-top:4px">Start 7-Day Free Trial →</button>' +
       '</div>' +
       '<button class="btn btn-g" onclick="shareScore(' + score + ',' + acc + ')" style="margin-bottom:10px;gap:8px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Share My Score</button>' +
-      '<button class="btn btn-g" onclick="renderHM()" style="color:var(--t3)">Back to Home</button>' +
+      '<button class="btn btn-g" onclick="' + (wasGen ? 'renderMG()' : 'renderHM()') + '" style="color:var(--t3)">' + (wasGen ? '← Back to Generator' : 'Back to Home') + '</button>' +
     '</div>';
 }
 
@@ -950,7 +931,11 @@ async function renderPF() {
         '</div>' +
         '<button class="btn btn-trial" onclick="window.open(\'https://rzp.io/rzp/zJ6jF8B\',\'_blank\')" style="font-size:16px;padding:17px;margin-bottom:10px">Upgrade Now — ₹149/month →</button>' +
       '</div>' +
-      '<button class="btn" style="background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.18);color:#FDA4AF;margin-top:4px" onclick="logout()">Sign Out</button>' +
+      '<button class="btn" style="background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.18);color:#FDA4AF;margin-top:4px" onclick="logout()">Sign Out</button>'
+    + '<div class="gen-hist-section" style="margin-top:18px">'
+    + '<div class="gen-hist-hdr"><div class="gen-hist-title">⚡ Generated Quiz History</div><button class="btn-sm btn-g" onclick="renderMG()" style="font-size:11px;padding:6px 12px;width:auto">+ New</button></div>'
+    + '<div class="gen-hist-list" id="gen-hist-list"><div style="text-align:center;padding:20px;color:var(--t3);font-size:13px">Loading...</div></div>'
+    + '</div>' +
     '</div>' +
     '<div class="bnav">' +
       '<div class="bn" onclick="renderHM()">' + NAV_SVG.home + 'Home</div>' +
@@ -958,8 +943,7 @@ async function renderPF() {
       '<div class="bn on" onclick="go(\'pf\')">' + NAV_SVG.profile + 'Profile</div>' +
     '</div>';
 
-  api('user_attempts', '?user_id=eq.' + U.id).then(function (at) {
-    if (!at || !at.length) return;
+  api('user_attempts', '?user_id=eq.' + U.id).then(function (at) {    if (!at || !at.length) return;
     var avg = at.reduce(function (s, a) { return s + parseFloat(a.accuracy_pct || 0); }, 0) / at.length;
     var ar = Math.round(avg);
     var pd = document.getElementById('pd'); if (pd) pd.textContent = at.length;
@@ -971,6 +955,31 @@ async function renderPF() {
     var rdb = document.getElementById('rd-b'); if (rdb) rdb.style.width = Math.min(ar, 100) + '%';
     var ps = document.getElementById('pop-sub'); if (ps) ps.textContent = 'Preparing for ' + (P && P.exam_target ? P.exam_target : 'UPSC') + ' · Day ' + at.length;
     var pr = document.getElementById('pop-ready'); if (pr) pr.textContent = Math.min(ar, 100) + '% Ready';
+  });
+
+  // Load generated quiz history
+  api('user_attempts', '?user_id=eq.' + U.id + '&is_generated=eq.true&order=created_at.desc&limit=10').then(function(hist) {
+    var el = document.getElementById('gen-hist-list');
+    if (!el) return;
+    if (!hist || !hist.length) {
+      el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--t3);font-size:13px">No generated quizzes yet.<br/>Tap + New to try the MCQ Generator!</div>';
+      return;
+    }
+    el.innerHTML = hist.map(function(a) {
+      var date = new Date(a.created_at);
+      var dateStr = date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+      var emoji = a.accuracy_pct >= 70 ? '🏆' : a.accuracy_pct >= 50 ? '📈' : '📚';
+      return '<div class="gen-hist-card">'
+        + '<div class="gen-hist-icon">' + emoji + '</div>'
+        + '<div class="gen-hist-info">'
+        + '<div class="gen-hist-name">Generated Quiz</div>'
+        + '<div class="gen-hist-meta">' + dateStr + ' · ' + a.total_questions + ' Qs · ' + a.time_taken_sec + 's</div>'
+        + '</div>'
+        + '<div class="gen-hist-score">'
+        + '<div class="gen-hist-val">' + a.score + '/' + a.total_questions + '</div>'
+        + '<div class="gen-hist-lbl">' + Math.round(a.accuracy_pct) + '%</div>'
+        + '</div></div>';
+    }).join('');
   });
 }
 
