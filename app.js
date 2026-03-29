@@ -526,6 +526,151 @@ function renderGenHistory(attempts) {
   }).join('');
 }
 
+// ── ADMIN TAP (triple-tap logo to open) ──
+var adminTapCount = 0, adminTapTimer = null;
+function adminTap() {
+  adminTapCount++;
+  clearTimeout(adminTapTimer);
+  adminTapTimer = setTimeout(function() { adminTapCount = 0; }, 1000);
+  if (adminTapCount >= 5) { adminTapCount = 0; renderAdmin(); }
+}
+
+// ── ADMIN PANEL ──
+var ADMIN_KEY_LOCAL = null;
+var AUTO_GEN_URL = 'https://xkijsokwttuypxcgppbe.supabase.co/functions/v1/auto-generate';
+
+function renderAdmin() {
+  var stored = localStorage.getItem('mm_admin_key');
+  if (!stored) {
+    var key = prompt('Enter admin password:');
+    if (!key) return;
+    localStorage.setItem('mm_admin_key', key);
+    ADMIN_KEY_LOCAL = key;
+  } else {
+    ADMIN_KEY_LOCAL = stored;
+  }
+  go('adm');
+  var el = document.getElementById('adm');
+  el.innerHTML =
+    '<div class="nav">'
+    + '<button onclick="renderHM()" style="background:none;border:none;color:var(--t3);font-size:14px;cursor:pointer;font-weight:700;font-family:inherit;display:flex;align-items:center;gap:5px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>Back</button>'
+    + '<div style="font-size:15px;font-weight:800">⚙️ Admin Panel</div>'
+    + '<button onclick="localStorage.removeItem(\'mm_admin_key\');renderHM()" style="background:none;border:none;color:var(--rose);font-size:12px;cursor:pointer;font-weight:700;font-family:inherit">Logout</button>'
+    + '</div>'
+    + '<div style="padding:18px 18px 100px;overflow-y:auto;flex:1">'
+
+    // Today's status
+    + '<div style="font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--t3);margin-bottom:12px">Today\'s Quiz Status</div>'
+    + '<div id="adm-status" style="background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:20px">'
+    + '<div style="text-align:center;color:var(--t3);font-size:13px">Loading...</div></div>'
+
+    // Generate section
+    + '<div style="font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--t3);margin-bottom:12px">Generate Quiz</div>'
+    + '<div style="background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:20px">'
+
+    + '<div style="margin-bottom:12px"><div style="font-size:12px;font-weight:700;color:var(--t2);margin-bottom:8px">Exam</div>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+    + ['UPSC','SSC','Banking','RBI'].map(function(e) {
+        return '<button class="adm-pill" id="adm-exam-' + e + '" onclick="admSelect(\'exam\',\'' + e + '\')">' + e + '</button>';
+      }).join('')
+    + '</div></div>'
+
+    + '<div style="margin-bottom:12px"><div style="font-size:12px;font-weight:700;color:var(--t2);margin-bottom:8px">Mode</div>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+    + [['0','🤖 AI Fresh'],['1','📰 Current Affairs'],['2','📋 PYQ Style']].map(function(m) {
+        return '<button class="adm-pill" id="adm-mode-' + m[0] + '" onclick="admSelect(\'mode\',\'' + m[0] + '\')">' + m[1] + '</button>';
+      }).join('')
+    + '</div></div>'
+
+    + '<div style="margin-bottom:16px"><div style="font-size:12px;font-weight:700;color:var(--t2);margin-bottom:8px">Questions</div>'
+    + '<div style="display:flex;gap:8px">'
+    + [5,10,15,20].map(function(n) {
+        return '<button class="adm-pill" id="adm-count-' + n + '" onclick="admSelect(\'count\',' + n + ')">' + n + '</button>';
+      }).join('')
+    + '</div></div>'
+
+    + '<div style="display:flex;gap:10px">'
+    + '<button class="btn btn-p" id="adm-gen-btn" onclick="admGenerate(false)" style="flex:2">⚡ Generate Now</button>'
+    + '<button class="btn btn-g" id="adm-force-btn" onclick="admGenerate(true)" style="flex:1;font-size:13px">Force Replace</button>'
+    + '</div></div>'
+
+    // Log
+    + '<div style="font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--t3);margin-bottom:12px">Generation Log</div>'
+    + '<div id="adm-log" style="background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:16px;font-size:12px;color:var(--t3);font-family:monospace;min-height:80px;line-height:1.8">Ready.</div>'
+
+    + '</div>';
+
+  // Set defaults
+  admSelect('exam', 'UPSC');
+  admSelect('mode', '0');
+  admSelect('count', 10);
+
+  // Load today's status
+  var td = new Date().toISOString().split('T')[0];
+  api('quizzes', '?scheduled_for=eq.' + td + '&is_published=eq.true').then(function(qz) {
+    var el = document.getElementById('adm-status');
+    if (!el) return;
+    if (!qz || !qz.length) {
+      el.innerHTML = '<div style="display:flex;align-items:center;gap:10px"><div style="width:10px;height:10px;border-radius:50%;background:#F43F5E;flex-shrink:0"></div><div><div style="font-size:13px;font-weight:700;color:#FDA4AF">No quiz generated today</div><div style="font-size:11px;color:var(--t3);margin-top:2px">' + td + ' — tap Generate Now</div></div></div>';
+    } else {
+      el.innerHTML = qz.map(function(q) {
+        return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><div style="width:10px;height:10px;border-radius:50%;background:#10B981;flex-shrink:0"></div><div><div style="font-size:13px;font-weight:700;color:#6EE7B7">' + q.title + '</div><div style="font-size:11px;color:var(--t3);margin-top:2px">' + q.exam_target + ' · ' + (q.mode || 'fresh') + ' · ' + td + '</div></div></div>';
+      }).join('');
+    }
+  });
+}
+
+var admState = { exam: 'UPSC', mode: '0', count: 10 };
+
+function admSelect(type, val) {
+  admState[type] = val;
+  document.querySelectorAll('.adm-pill[id^="adm-' + type + '"]').forEach(function(b) { b.classList.remove('on'); });
+  var target = document.getElementById('adm-' + type + '-' + val);
+  if (target) target.classList.add('on');
+}
+
+async function admGenerate(force) {
+  var btn = document.getElementById('adm-gen-btn');
+  var log = document.getElementById('adm-log');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Generating...'; }
+  if (log) log.textContent = 'Starting generation...\nExam: ' + admState.exam + '\nMode: ' + ['AI Fresh','Current Affairs','PYQ Style'][admState.mode] + '\nQuestions: ' + admState.count + (force ? '\nForce replace: YES' : '') + '\n\nCalling AI...';
+
+  try {
+    var r = await fetch(AUTO_GEN_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-key': ADMIN_KEY_LOCAL
+      },
+      body: JSON.stringify({
+        exam: admState.exam,
+        mode: parseInt(admState.mode),
+        count: admState.count,
+        force: force
+      })
+    });
+
+    var d = await r.json();
+
+    if (d.skipped) {
+      if (log) log.textContent += '\n\n⚠️ Quiz already exists for today.\nUse "Force Replace" to override.';
+    } else if (d.success) {
+      if (log) log.textContent += '\n\n✅ SUCCESS!\nTitle: ' + d.quiz.title + '\nQuestions: ' + d.quiz.questions + '\nMode: ' + d.quiz.mode + '\nDate: ' + d.quiz.date;
+      toast('Quiz generated! ✅', 'ok');
+      // Refresh status
+      setTimeout(function() { renderAdmin(); }, 1500);
+    } else {
+      if (log) log.textContent += '\n\n❌ ERROR: ' + (d.error || JSON.stringify(d));
+      toast('Generation failed', 'err');
+    }
+  } catch(e) {
+    if (log) log.textContent += '\n\n❌ EXCEPTION: ' + e.message;
+    toast('Something went wrong', 'err');
+  }
+
+  if (btn) { btn.disabled = false; btn.textContent = '⚡ Generate Now'; }
+}
+
 // ── BOOT ──
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function () { setTimeout(init, 100); });
@@ -626,7 +771,7 @@ async function renderHM() {
   }
 
   el.innerHTML = '<div class="nav">'
-    + '<div class="nav-logo">' + LOGO_SVG + '<div class="nav-logo-text">Micro <span>Mock</span></div></div>'
+    + '<div class="nav-logo" id="admin-tap" onclick="adminTap()">' + LOGO_SVG + '<div class="nav-logo-text">Micro <span>Mock</span></div></div>'
     + '<div class="nav-right"><div class="user-av" id="hav" onclick="go(\'pf\')"><img id="hav-img" src="' + avUrl(seed) + '" alt=""/></div></div>'
     + '</div>'
     + '<div class="hbody">'
