@@ -594,6 +594,10 @@ function renderAdmin() {
     + '<button class="btn btn-g" id="adm-force-btn" onclick="admGenerate(true)" style="flex:1;font-size:13px">Force Replace</button>'
     + '</div></div>'
 
+    // PYQ Upload section
+    + '<div style="font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--t3);margin-bottom:12px;margin-top:4px">Upload PYQs</div>'
+    + '<div style="background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:20px" id="adm-pyq-wrap"></div>'
+
     // Log
     + '<div style="font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--t3);margin-bottom:12px">Generation Log</div>'
     + '<div id="adm-log" style="background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:16px;font-size:12px;color:var(--t3);font-family:monospace;min-height:80px;line-height:1.8">Ready.</div>'
@@ -604,6 +608,8 @@ function renderAdmin() {
   admSelect('exam', 'UPSC');
   admSelect('mode', '0');
   admSelect('count', 10);
+  admState.pyqYear = new Date().getFullYear();
+  setTimeout(renderAdminPYQ, 100);
 
   // Load today's status
   var td = new Date().toISOString().split('T')[0];
@@ -669,6 +675,243 @@ async function admGenerate(force) {
   }
 
   if (btn) { btn.disabled = false; btn.textContent = '⚡ Generate Now'; }
+}
+
+// ── PYQ SECTION ──
+var pyqExam = 'UPSC';
+var pyqYear = null;
+
+var PYQ_EXAMS = [
+  { id: 'UPSC', label: 'UPSC Prelims', icon: '🏛️' },
+  { id: 'SSC', label: 'SSC CGL/CHSL', icon: '📋' },
+  { id: 'Banking', label: 'IBPS PO/Clerk', icon: '🏦' },
+  { id: 'RBI', label: 'RBI Grade B', icon: '💰' }
+];
+
+async function renderPYQ() {
+  go('pyq');
+  var el = document.getElementById('pyq');
+  el.innerHTML =
+    '<div class="nav">'
+    + '<button onclick="renderHM()" style="background:none;border:none;color:var(--t3);font-size:14px;cursor:pointer;font-weight:700;font-family:inherit;display:flex;align-items:center;gap:5px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>Back</button>'
+    + '<div style="font-size:15px;font-weight:800">Previous Year Questions</div>'
+    + '<div style="width:40px"></div>'
+    + '</div>'
+    + '<div class="pyq-body">'
+    + '<div class="pyq-hero">'
+    + '<div class="pyq-hero-t">📚 PYQ Practice</div>'
+    + '<div class="pyq-hero-s">Practice real questions from past exams</div>'
+    + '</div>'
+    + '<div class="pyq-exam-tabs" id="pyq-exam-tabs">'
+    + PYQ_EXAMS.map(function(e) {
+        return '<button class="pyq-exam-tab' + (e.id === pyqExam ? ' on' : '') + '" onclick="selectPYQExam(\'' + e.id + '\')">'
+          + e.icon + ' ' + e.label + '</button>';
+      }).join('')
+    + '</div>'
+    + '<div id="pyq-sets-wrap"><div class="pyq-loading">' + sparkSVG('think', 40) + '<div>Loading sets...</div></div></div>'
+    + '</div>'
+    + '<div class="bnav">'
+    + '<div class="bn" onclick="renderHM()">' + NAV_SVG.home + 'Home</div>'
+    + '<div class="bn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>Generate</div>'
+    + '<div class="bn on"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PYQ</div>'
+    + '<div class="bn" onclick="go(\'lb\')">' + NAV_SVG.ranks + 'Ranks</div>'
+    + '<div class="bn" onclick="go(\'pf\')">' + NAV_SVG.profile + 'Profile</div>'
+    + '</div>';
+
+  loadPYQSets(pyqExam);
+}
+
+async function selectPYQExam(exam) {
+  pyqExam = exam;
+  document.querySelectorAll('.pyq-exam-tab').forEach(function(b) {
+    b.classList.toggle('on', b.textContent.includes(PYQ_EXAMS.find(function(e) { return e.id === exam; }).label));
+  });
+  loadPYQSets(exam);
+}
+
+async function loadPYQSets(exam) {
+  var wrap = document.getElementById('pyq-sets-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = '<div class="pyq-loading">' + sparkSVG('think', 40) + '<div style="margin-top:8px;font-size:13px;color:var(--t3)">Loading...</div></div>';
+
+  // Get distinct years for this exam from questions table
+  var data = await api('questions', '?source_tag=eq.pyq&pyq_exam=eq.' + exam + '&select=year,pyq_exam&order=year.desc');
+
+  if (!data || !data.length) {
+    wrap.innerHTML = '<div class="pyq-empty">'
+      + '<div style="font-size:48px;margin-bottom:14px">📭</div>'
+      + '<div style="font-size:16px;font-weight:800;margin-bottom:8px">No PYQs yet for ' + exam + '</div>'
+      + '<div style="font-size:13px;color:var(--t3);line-height:1.7;max-width:260px;margin:0 auto">Real previous year questions will appear here once uploaded by the admin.</div>'
+      + '</div>';
+    return;
+  }
+
+  // Group by year
+  var years = {};
+  data.forEach(function(q) {
+    var yr = q.year || 'Unknown';
+    if (!years[yr]) years[yr] = 0;
+    years[yr]++;
+  });
+
+  var html = '<div style="margin-bottom:16px"><div style="font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--t3);margin-bottom:12px">Select Year</div>'
+    + '<div class="pyq-sets-list">';
+
+  Object.keys(years).sort(function(a, b) { return b - a; }).forEach(function(yr) {
+    html += '<div class="pyq-set-card" onclick="startPYQQuiz(\'' + exam + '\',' + yr + ')">'
+      + '<div class="pyq-set-icon">📋</div>'
+      + '<div class="pyq-set-info">'
+      + '<div class="pyq-set-title">' + exam + ' ' + yr + '</div>'
+      + '<div class="pyq-set-meta">' + years[yr] + ' questions</div>'
+      + '</div>'
+      + '<div class="pyq-set-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg></div>'
+      + '</div>';
+  });
+
+  html += '</div></div>';
+  wrap.innerHTML = html;
+}
+
+async function startPYQQuiz(exam, year) {
+  toast('Loading ' + exam + ' ' + year + ' questions...');
+  var questions = await api('questions', '?source_tag=eq.pyq&pyq_exam=eq.' + exam + '&year=eq.' + year + '&limit=25');
+  if (!questions || !questions.length) { toast('No questions found', 'err'); return; }
+
+  QS = questions; QI = 0; SC = 0;
+  TL = questions.length * 72; // ~72 sec per question
+  T0 = Date.now(); chatCtx = null; isGenQuiz = true;
+  renderPYQQuiz(exam, year);
+  rQ(); sTmr();
+}
+
+function renderPYQQuiz(exam, year) {
+  var el = document.getElementById('qz');
+  el.innerHTML =
+    '<div class="nav">'
+    + '<button onclick="if(confirm(\'Quit? Progress lost.\')){clearInterval(tmr);renderPYQ()}" style="background:none;border:none;color:var(--t3);font-size:14px;cursor:pointer;font-weight:700;font-family:inherit;display:flex;align-items:center;gap:5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Quit</button>'
+    + '<div class="q-ctr" id="qct">Q 1 / ' + QS.length + '</div>'
+    + '<div class="q-timer"><div class="tdot"></div><span id="qtm">--:--</span></div>'
+    + '</div>'
+    + '<div class="pyq-quiz-banner"><span class="pyq-quiz-tag">📋 ' + exam + ' ' + year + '</span></div>'
+    + '<div class="qbody">'
+    + '<div class="prog-track"><div class="prog-fill" id="qpr" style="width:' + (1/QS.length*100) + '%"></div></div>'
+    + '<div class="q-subj" id="qdf">Loading...</div>'
+    + '<div class="q-txt" id="qtx">Loading...</div>'
+    + '<div class="opts" id="qop"></div>'
+    + '<div class="exp" id="qex"><div class="exp-t">Explanation</div><div class="exp-body" id="qxt"></div></div>'
+    + '<button class="ask-ai-btn" id="ask-ai-q-btn" style="display:none" onclick="openChatWithContext()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>Ask AI to explain this</button>'
+    + '</div>'
+    + '<div class="q-foot"><button class="btn btn-p" id="bnx" onclick="nQ()" disabled>Select an answer</button></div>';
+  go('qz');
+}
+
+// ── ADMIN PYQ UPLOAD ──
+async function renderAdminPYQ() {
+  var examSel = admState.exam;
+  var yearSel = admState.pyqYear || new Date().getFullYear();
+  var wrap = document.getElementById('adm-pyq-wrap');
+  if (!wrap) return;
+
+  wrap.innerHTML =
+    '<div style="margin-bottom:12px"><div style="font-size:12px;font-weight:700;color:var(--t2);margin-bottom:8px">Exam</div>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+    + ['UPSC','SSC','Banking','RBI'].map(function(e) {
+        return '<button class="adm-pill' + (e === examSel ? ' on' : '') + '" onclick="admPYQExam(\'' + e + '\')">' + e + '</button>';
+      }).join('')
+    + '</div></div>'
+    + '<div style="margin-bottom:12px"><div style="font-size:12px;font-weight:700;color:var(--t2);margin-bottom:8px">Year</div>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+    + [2024,2023,2022,2021,2020].map(function(y) {
+        return '<button class="adm-pill' + (y === yearSel ? ' on' : '') + '" onclick="admPYQYear(' + y + ')">' + y + '</button>';
+      }).join('')
+    + '</div></div>'
+    + '<div style="margin-bottom:12px"><div style="font-size:12px;font-weight:700;color:var(--t2);margin-bottom:6px">Paste Questions JSON</div>'
+    + '<div style="font-size:11px;color:var(--t3);margin-bottom:8px;line-height:1.6">Format: array of objects with question, option_a/b/c/d, correct_option (A/B/C/D), explanation, subject</div>'
+    + '<textarea id="pyq-json-inp" style="width:100%;background:var(--s2);border:1.5px solid var(--bd2);border-radius:12px;padding:12px;font-size:11px;color:var(--t1);resize:none;outline:none;font-family:monospace;min-height:140px;line-height:1.5" placeholder=\'[{"question":"...","option_a":"...","option_b":"...","option_c":"...","option_d":"...","correct_option":"A","explanation":"...","subject":"Polity"}]\'></textarea>'
+    + '</div>'
+    + '<button class="btn btn-p" onclick="uploadPYQs()" id="pyq-upload-btn">⬆️ Upload PYQs</button>'
+    + '<div id="pyq-upload-log" style="margin-top:10px;font-size:12px;color:var(--t3);font-family:monospace;min-height:30px"></div>';
+}
+
+function admPYQExam(e) {
+  admState.exam = e;
+  renderAdminPYQ();
+}
+
+function admPYQYear(y) {
+  admState.pyqYear = y;
+  renderAdminPYQ();
+}
+
+async function uploadPYQs() {
+  var inp = document.getElementById('pyq-json-inp');
+  var log = document.getElementById('pyq-upload-log');
+  var btn = document.getElementById('pyq-upload-btn');
+  if (!inp || !inp.value.trim()) { toast('Paste questions JSON first', 'err'); return; }
+
+  var questions;
+  try {
+    var clean = inp.value.trim().replace(/```json/g,'').replace(/```/g,'').trim();
+    questions = JSON.parse(clean);
+    if (!Array.isArray(questions)) throw new Error('Must be an array');
+  } catch(e) {
+    toast('Invalid JSON — ' + e.message, 'err');
+    return;
+  }
+
+  if (!questions.length) { toast('No questions found in JSON', 'err'); return; }
+
+  btn.disabled = true; btn.textContent = 'Uploading...';
+  if (log) log.textContent = 'Preparing ' + questions.length + ' questions...';
+
+  var exam = admState.exam;
+  var year = admState.pyqYear || new Date().getFullYear();
+
+  var toInsert = questions.map(function(q) {
+    return {
+      question_text: q.question || q.question_text,
+      option_a: q.option_a,
+      option_b: q.option_b,
+      option_c: q.option_c,
+      option_d: q.option_d,
+      correct_option: q.correct_option,
+      explanation: q.explanation || '',
+      subject: q.subject || 'General',
+      difficulty: q.difficulty || 'medium',
+      source_tag: 'pyq',
+      pyq_exam: exam,
+      year: year,
+      quiz_id: null
+    };
+  });
+
+  // Validate
+  var invalid = toInsert.filter(function(q) {
+    return !q.question_text || !q.option_a || !q.option_b || !q.option_c || !q.option_d || !q.correct_option;
+  });
+  if (invalid.length) {
+    toast(invalid.length + ' questions have missing fields', 'err');
+    btn.disabled = false; btn.textContent = '⬆️ Upload PYQs';
+    return;
+  }
+
+  var r = await fetch(SB + '/rest/v1/questions', {
+    method: 'POST',
+    headers: Object.assign({}, H, { 'Prefer': 'return=minimal' }),
+    body: JSON.stringify(toInsert)
+  });
+
+  if (r.ok) {
+    toast(questions.length + ' PYQs uploaded! ✅', 'ok');
+    if (log) log.textContent = '✅ Successfully uploaded ' + questions.length + ' questions\nExam: ' + exam + ' · Year: ' + year;
+    inp.value = '';
+  } else {
+    var err = await r.text();
+    toast('Upload failed', 'err');
+    if (log) log.textContent = '❌ Error: ' + err;
+  }
+
+  btn.disabled = false; btn.textContent = '⬆️ Upload PYQs';
 }
 
 // ── BOOT ──
@@ -802,6 +1045,7 @@ async function renderHM() {
     + '<div class="bnav">'
     + '<div class="bn on" onclick="go(\'hm\')">' + NAV_SVG.home + 'Home</div>'
     + '<div class="bn" onclick="renderMG()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>Generate</div>'
+    + '<div class="bn" onclick="renderPYQ()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PYQ</div>'
     + '<div class="bn" onclick="go(\'lb\')">' + NAV_SVG.ranks + 'Ranks</div>'
     + '<div class="bn" onclick="go(\'pf\')">' + NAV_SVG.profile + 'Profile</div>'
     + '</div>';
