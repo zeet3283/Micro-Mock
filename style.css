@@ -407,3 +407,8 @@ body { font-family: -apple-system, 'SF Pro Display', 'Segoe UI', system-ui, sans
 .mg-ready-s { font-size: 13px; color: var(--t2); margin-bottom: 20px; }
 .mg-ready-pills { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
 .mg-ready-pill { background: var(--s2); border: 1px solid var(--bd2); border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 600; color: var(--t2); }
+
+/* ── ADMIN PANEL ── */
+.adm-pill { background: var(--s2); border: 1.5px solid var(--bd2); border-radius: 20px; padding: 7px 14px; font-size: 12px; font-weight: 700; color: var(--t2); cursor: pointer; font-family: inherit; transition: all .2s; white-space: nowrap; }
+.adm-pill.on { background: rgba(99,102,241,.15); border-color: var(--brand); color: #A5B4FC; }
+.adm-pill:active { transform: scale(.95); }
