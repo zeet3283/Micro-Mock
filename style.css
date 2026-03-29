@@ -412,3 +412,29 @@ body { font-family: -apple-system, 'SF Pro Display', 'Segoe UI', system-ui, sans
 .adm-pill { background: var(--s2); border: 1.5px solid var(--bd2); border-radius: 20px; padding: 7px 14px; font-size: 12px; font-weight: 700; color: var(--t2); cursor: pointer; font-family: inherit; transition: all .2s; white-space: nowrap; }
 .adm-pill.on { background: rgba(99,102,241,.15); border-color: var(--brand); color: #A5B4FC; }
 .adm-pill:active { transform: scale(.95); }
+
+/* ── PYQ SECTION ── */
+.pyq-body { flex: 1; padding: 18px 18px 100px; overflow-y: auto; }
+.pyq-hero { text-align: center; padding: 16px 0 22px; }
+.pyq-hero-t { font-size: 20px; font-weight: 900; letter-spacing: -.4px; margin-bottom: 6px; }
+.pyq-hero-s { font-size: 13px; color: var(--t2); }
+
+.pyq-exam-tabs { display: flex; flex-direction: column; gap: 8px; margin-bottom: 22px; }
+.pyq-exam-tab { background: var(--s1); border: 2px solid var(--bd); border-radius: 13px; padding: 14px 16px; font-size: 14px; font-weight: 700; color: var(--t2); cursor: pointer; text-align: left; transition: all .2s; font-family: inherit; width: 100%; }
+.pyq-exam-tab.on { border-color: var(--brand); background: rgba(99,102,241,.08); color: #A5B4FC; }
+.pyq-exam-tab:active { transform: scale(.98); }
+
+.pyq-loading { text-align: center; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; gap: 12px; color: var(--t3); font-size: 13px; }
+.pyq-empty { text-align: center; padding: 48px 20px; }
+
+.pyq-sets-list { display: flex; flex-direction: column; gap: 10px; }
+.pyq-set-card { background: var(--s1); border: 1px solid var(--bd); border-radius: var(--r); padding: 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: all .2s; }
+.pyq-set-card:active { transform: scale(.98); border-color: rgba(99,102,241,.3); }
+.pyq-set-icon { width: 44px; height: 44px; border-radius: 12px; background: rgba(99,102,241,.1); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.pyq-set-info { flex: 1; }
+.pyq-set-title { font-size: 15px; font-weight: 800; letter-spacing: -.3px; margin-bottom: 3px; }
+.pyq-set-meta { font-size: 12px; color: var(--t3); }
+.pyq-set-arrow { color: var(--t3); flex-shrink: 0; }
+
+.pyq-quiz-banner { background: rgba(99,102,241,.08); border-bottom: 1px solid rgba(99,102,241,.15); padding: 8px 20px; }
+.pyq-quiz-tag { font-size: 12px; font-weight: 700; color: #A5B4FC; }
