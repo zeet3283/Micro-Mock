@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-title" content="Micro Mock"/>
 <title>Micro Mock — Daily MCQ Practice</title>
-<link rel="stylesheet" href="style.css?v=3"/>
+<link rel="stylesheet" href="style.css?v=10"/>
 </head>
 <body>
 
@@ -27,7 +27,7 @@
     <div class="chat-handle"></div>
     <div class="chat-hdr">
       <div class="chat-hdr-left">
-        <div class="ai-av spark-chat-av" id="spark-chat-av"></div>
+        <div class="spark-chat-av" id="spark-chat-av"></div>
         <div><div class="chat-title">Prep Assistant</div><div class="chat-sub">Powered by Groq AI</div></div>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
@@ -58,7 +58,7 @@
   </div>
 </div>
 
-<!-- SPLASH (loading) -->
+<!-- SPLASH -->
 <div class="pg on" id="sp">
   <div class="orb orb1"></div><div class="orb orb2"></div>
   <div class="sp-wrap">
@@ -83,7 +83,6 @@
 <!-- ONBOARDING SLIDES -->
 <div class="pg" id="on">
   <div class="ob-slides" id="ob-slides">
-
     <!-- Slide 1 -->
     <div class="ob-slide">
       <div class="ob-orb1"></div><div class="ob-orb2"></div>
@@ -102,76 +101,43 @@
         <p class="ob-p">Fresh MCQs curated for your exam. Build the habit that toppers swear by — consistency beats cramming.</p>
       </div>
     </div>
-
     <!-- Slide 2 -->
     <div class="ob-slide">
       <div class="ob-orb1" style="background:radial-gradient(circle,rgba(16,185,129,.2),transparent 70%)"></div>
       <div class="ob-orb2" style="background:radial-gradient(circle,rgba(99,102,241,.15),transparent 70%)"></div>
       <div class="ob-art">
         <div class="ob-chat-demo">
-          <div class="ob-chat-msg ai">
-            <div class="ob-chat-av">⚡</div>
-            <div class="ob-chat-bubble">Article 21 guarantees the right to life and personal liberty...</div>
-          </div>
-          <div class="ob-chat-msg user">
-            <div class="ob-chat-bubble user">Give me a memory trick!</div>
-            <div class="ob-chat-av">👤</div>
-          </div>
-          <div class="ob-chat-msg ai">
-            <div class="ob-chat-av">⚡</div>
-            <div class="ob-chat-bubble">Think "21 = Life" — you need life to do anything at 21 🎯</div>
-          </div>
+          <div class="ob-chat-msg ai"><div class="ob-chat-av">⚡</div><div class="ob-chat-bubble">Article 21 guarantees the right to life and personal liberty...</div></div>
+          <div class="ob-chat-msg user"><div class="ob-chat-bubble user">Give me a memory trick!</div><div class="ob-chat-av">👤</div></div>
+          <div class="ob-chat-msg ai"><div class="ob-chat-av">⚡</div><div class="ob-chat-bubble">Think "21 = Life" — you need life to do anything at 21 🎯</div></div>
         </div>
       </div>
       <div class="ob-content">
         <div class="ob-badge" style="background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.25);color:#6EE7B7">AI Tutor</div>
         <h1 class="ob-h">Stuck? Just<br/><span style="background:linear-gradient(135deg,#10B981,#22D3EE);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Ask the AI.</span></h1>
-        <p class="ob-p">Get instant explanations, memory tricks, and topic breakdowns. Like a personal tutor, but free and always available.</p>
+        <p class="ob-p">Get instant explanations, memory tricks and topic breakdowns. Like a personal tutor — free and always available.</p>
       </div>
     </div>
-
     <!-- Slide 3 -->
     <div class="ob-slide">
       <div class="ob-orb1" style="background:radial-gradient(circle,rgba(245,158,11,.18),transparent 70%)"></div>
       <div class="ob-orb2" style="background:radial-gradient(circle,rgba(99,102,241,.12),transparent 70%)"></div>
       <div class="ob-art">
         <div class="ob-leaderboard-demo">
-          <div class="ob-lb-row gold">
-            <span class="ob-lb-rank">🥇</span>
-            <div class="ob-lb-av" style="background:linear-gradient(135deg,#6366F1,#8B5CF6)"></div>
-            <div class="ob-lb-info"><div class="ob-lb-name">Rahul S.</div><div class="ob-lb-score">9/10</div></div>
-            <div class="ob-lb-xp">+92 XP</div>
-          </div>
-          <div class="ob-lb-row silver">
-            <span class="ob-lb-rank">🥈</span>
-            <div class="ob-lb-av" style="background:linear-gradient(135deg,#10B981,#22D3EE)"></div>
-            <div class="ob-lb-info"><div class="ob-lb-name">Priya M.</div><div class="ob-lb-score">8/10</div></div>
-            <div class="ob-lb-xp">+82 XP</div>
-          </div>
-          <div class="ob-lb-row you">
-            <span class="ob-lb-rank">🎯</span>
-            <div class="ob-lb-av" style="background:linear-gradient(135deg,#F59E0B,#D97706)"></div>
-            <div class="ob-lb-info"><div class="ob-lb-name">You</div><div class="ob-lb-score">?/10</div></div>
-            <div class="ob-lb-xp">Soon!</div>
-          </div>
+          <div class="ob-lb-row gold"><span class="ob-lb-rank">🥇</span><div class="ob-lb-av" style="background:linear-gradient(135deg,#6366F1,#8B5CF6)"></div><div class="ob-lb-info"><div class="ob-lb-name">Rahul S.</div><div class="ob-lb-score">9/10</div></div><div class="ob-lb-xp">+92 XP</div></div>
+          <div class="ob-lb-row silver"><span class="ob-lb-rank">🥈</span><div class="ob-lb-av" style="background:linear-gradient(135deg,#10B981,#22D3EE)"></div><div class="ob-lb-info"><div class="ob-lb-name">Priya M.</div><div class="ob-lb-score">8/10</div></div><div class="ob-lb-xp">+82 XP</div></div>
+          <div class="ob-lb-row you"><span class="ob-lb-rank">🎯</span><div class="ob-lb-av" style="background:linear-gradient(135deg,#F59E0B,#D97706)"></div><div class="ob-lb-info"><div class="ob-lb-name">You</div><div class="ob-lb-score">?/10</div></div><div class="ob-lb-xp">Soon!</div></div>
         </div>
       </div>
       <div class="ob-content">
         <div class="ob-badge" style="background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.25);color:#FCD34D">Leaderboard</div>
         <h1 class="ob-h">Compete.<br/><span style="background:linear-gradient(135deg,#F59E0B,#F97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Prove It.</span></h1>
-        <p class="ob-p">Rank against aspirants across India. Earn XP, climb the board, and show your family the proof of your preparation.</p>
+        <p class="ob-p">Rank against aspirants across India. Earn XP, climb the board and show your family the proof of your preparation.</p>
       </div>
     </div>
-
   </div>
-
-  <!-- Dots & CTA -->
   <div class="ob-footer">
-    <div class="ob-dots">
-      <div class="ob-d on" id="od0"></div>
-      <div class="ob-d" id="od1"></div>
-      <div class="ob-d" id="od2"></div>
-    </div>
+    <div class="ob-dots"><div class="ob-d on" id="od0"></div><div class="ob-d" id="od1"></div><div class="ob-d" id="od2"></div></div>
     <button class="btn btn-p ob-next-btn" id="ob-next-btn" onclick="obNext()">Next →</button>
     <button class="ob-skip" onclick="go('lg')">Skip</button>
   </div>
@@ -199,7 +165,6 @@
       <button class="atab on" onclick="stab('social')">Google</button>
       <button class="atab" onclick="stab('email')">Email</button>
     </div>
-    <!-- Google Tab -->
     <div class="aform on" id="tab-social">
       <a class="social-btn" href="https://xkijsokwttuypxcgppbe.supabase.co/auth/v1/authorize?provider=google&redirect_to=https://zeet3283.github.io/Micro-Mock/">
         <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
@@ -207,7 +172,6 @@
       </a>
       <p style="font-size:12px;color:var(--t3);text-align:center;margin-top:10px">✅ Recommended — fastest sign in</p>
     </div>
-    <!-- Email Tab -->
     <div class="aform" id="tab-email">
       <div class="inp-w"><div class="inp-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg></div><input class="inp" id="em-inp" type="email" placeholder="your@email.com"/></div>
       <div class="inp-w"><div class="inp-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><input class="inp" id="pw-inp" type="password" placeholder="Password (min 6 chars)"/></div>
@@ -218,7 +182,7 @@
   </div>
 </div>
 
-<!-- ONBOARD PROFILE SETUP -->
+<!-- PROFILE SETUP -->
 <div class="pg" id="ob" style="justify-content:center;padding:24px">
   <div style="width:100%;max-width:380px">
     <div class="label" style="margin-bottom:6px">Quick Setup</div>
@@ -236,58 +200,34 @@
   </div>
 </div>
 
-<!-- PYQ (rendered by JS) -->
+<!-- SCREENS (rendered by JS) -->
+<div class="pg" id="hm" style="justify-content:flex-start"></div>
+<div class="pg" id="qz" style="justify-content:flex-start"></div>
+<div class="pg" id="rs" style="justify-content:center;padding:20px;align-items:center"></div>
+<div class="pg" id="lb" style="justify-content:flex-start"></div>
+<div class="pg" id="pf" style="justify-content:flex-start"></div>
+<div class="pg" id="mg" style="justify-content:flex-start"></div>
 <div class="pg" id="pyq" style="justify-content:flex-start"></div>
-
-<!-- ADMIN (rendered by JS) -->
 <div class="pg" id="adm" style="justify-content:flex-start"></div>
 
-<!-- MCQ GENERATOR (rendered by JS) -->
-<div class="pg" id="mg" style="justify-content:flex-start"></div>
-
-<!-- HOME (rendered by JS) -->
-<div class="pg" id="hm" style="justify-content:flex-start"></div>
-
-<!-- QUIZ (rendered by JS) -->
-<div class="pg" id="qz" style="justify-content:flex-start"></div>
-
-<!-- RESULTS (rendered by JS) -->
-<div class="pg" id="rs" style="justify-content:center;padding:20px;align-items:center"></div>
-
-<!-- LEADERBOARD (rendered by JS) -->
-<div class="pg" id="lb" style="justify-content:flex-start"></div>
-
-<!-- PROFILE (rendered by JS) -->
-<div class="pg" id="pf" style="justify-content:flex-start"></div>
-
 <script>
-// ── ONBOARDING SLIDER ──
-var obIdx = 0;
-var obTotal = 3;
-
+var obIdx = 0, obTotal = 3;
 function obNext() {
   obIdx++;
   if (obIdx >= obTotal) { go('lg'); return; }
-  var slides = document.getElementById('ob-slides');
-  slides.style.transform = 'translateX(-' + (obIdx * 33.333) + '%)';
-  for (var i = 0; i < obTotal; i++) {
-    var d = document.getElementById('od' + i);
-    if (d) d.classList.toggle('on', i === obIdx);
-  }
-  var btn = document.getElementById('ob-next-btn');
-  if (btn) btn.textContent = obIdx === obTotal - 1 ? 'Get Started →' : 'Next →';
+  document.getElementById('ob-slides').style.transform = 'translateX(-' + (obIdx * 33.333) + '%)';
+  for (var i = 0; i < obTotal; i++) { var d = document.getElementById('od' + i); if (d) d.classList.toggle('on', i === obIdx); }
+  var btn = document.getElementById('ob-next-btn'); if (btn) btn.textContent = obIdx === obTotal - 1 ? 'Get Started →' : 'Next →';
 }
 </script>
-<script src="app.js?v=6"></script>
+<script src="app.js?v=10"></script>
 <script>
-// Init Spark in HTML-rendered locations (after app.js loads sparkSVG)
 document.addEventListener('DOMContentLoaded', function() {
-  // Chat avatar
   var chatAv = document.getElementById('spark-chat-av');
   if (chatAv && typeof sparkSVG === 'function') chatAv.innerHTML = sparkSVG('neutral', 36);
-  // Onboarding slide 1
   var ob1 = document.getElementById('spark-ob1');
   if (ob1 && typeof sparkSVG === 'function') ob1.innerHTML = sparkSVG('happy', 72);
 });
 </script>
+</body>
 </html>
