@@ -540,11 +540,11 @@ var ADMIN_KEY_LOCAL = null;
 var AUTO_GEN_URL = 'https://xkijsokwttuypxcgppbe.supabase.co/functions/v1/auto-generate';
 
 function renderAdmin() {
-  var stored = localStorage.getItem('mm_admin_key');
+  var stored = sessionStorage.getItem('mm_admin_key');
   if (!stored) {
     var key = prompt('Enter admin password:');
     if (!key) return;
-    localStorage.setItem('mm_admin_key', key);
+    sessionStorage.setItem('mm_admin_key', key);
     ADMIN_KEY_LOCAL = key;
   } else {
     ADMIN_KEY_LOCAL = stored;
@@ -555,7 +555,7 @@ function renderAdmin() {
     '<div class="nav">'
     + '<button onclick="renderHM()" style="background:none;border:none;color:var(--t3);font-size:14px;cursor:pointer;font-weight:700;font-family:inherit;display:flex;align-items:center;gap:5px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>Back</button>'
     + '<div style="font-size:15px;font-weight:800">⚙️ Admin Panel</div>'
-    + '<button onclick="localStorage.removeItem(\'mm_admin_key\');renderHM()" style="background:none;border:none;color:var(--rose);font-size:12px;cursor:pointer;font-weight:700;font-family:inherit">Logout</button>'
+    + '<button onclick="sessionStorage.removeItem(\'mm_admin_key\');renderHM()" style="background:none;border:none;color:var(--rose);font-size:12px;cursor:pointer;font-weight:700;font-family:inherit">Logout</button>'
     + '</div>'
     + '<div style="padding:18px 18px 100px;overflow-y:auto;flex:1">'
 
@@ -926,7 +926,6 @@ function stab(t) {
   document.querySelectorAll('.aform').forEach(function (f) { f.classList.remove('on'); });
   document.getElementById('tab-' + t).classList.add('on');
 }
-
 async function signEmail() {
   var em = document.getElementById('em-inp').value.trim();
   var pw = document.getElementById('pw-inp').value;
@@ -1019,7 +1018,7 @@ async function renderHM() {
     + '</div>'
     + '<div class="hbody">'
     + '<div class="greet"><div><div class="greet-sub">Good to see you 👋</div><div class="greet-name">' + nm + '</div></div>'
-    + '<div class="spark-greet-wrap"><div class="spark-greet-mascot">' + sparkSVG('happy', 52) + '</div><div class="streak-chip"><svg width="13" height="13" viewBox="0 0 24 24" fill="#FCD34D"><path d="M12 2c0 0-6 6-6 12a6 6 0 0 0 12 0c0-6-6-12-6-12z"/></svg><span id="hst">0</span></div></div></div>'
+    + '<div class="spark-greet-wrap"><div class="spark-greet-mascot">' + sparkSVG('happy', 52) + '</div><div class="streak-chip"><svg width="13" height="13" viewBox="0 0 24 24" fill="#FCD34D"><path d="M12 2c0 0-6 6-6 12a6 6 0 0 0 12 0c0-6-6-12-6-12z"/></svg><span id="hst">0</span> days</div></div></div>'
     + trialHTML
     + '<div class="xp-bar-wrap"><div class="xp-top"><div class="level-badge"><span id="level-icon">⚡</span><span class="level-name" id="level-nm">Rookie</span></div><span class="xp-count" id="xp-count">' + xp + ' / 100 XP</span></div><div class="xp-track"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div></div>'
     + '<div class="qhero"><div class="qhero-orb1"></div><div class="qhero-orb2"></div>'
@@ -1033,12 +1032,28 @@ async function renderHM() {
     + '<div class="stat-box"><div class="stat-val" style="background:linear-gradient(135deg,#10B981,#22D3EE);-webkit-background-clip:text;-webkit-text-fill-color:transparent" id="hqz">--</div><div class="stat-lbl">Quizzes</div></div>'
     + '<div class="stat-box"><div class="stat-val" style="background:linear-gradient(135deg,#F59E0B,#F97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent" id="hxp">' + xp + '</div><div class="stat-lbl">XP</div></div>'
     + '</div>'
-    + '<div style="font-size:15px;font-weight:800;margin-bottom:12px">Practice by Subject</div>'
-    + '<div class="subj-grid">'
-    + '<div class="subj-card" onclick="toast(\'GS coming soon!\')"><div class="subj-ico" style="background:rgba(99,102,241,.1)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#818CF8" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div><div><div class="subj-nm">General Studies</div><div class="subj-info">Polity · History</div></div></div>'
-    + '<div class="subj-card" onclick="toast(\'Reasoning coming soon!\')"><div class="subj-ico" style="background:rgba(245,158,11,.1)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FCD34D" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div><div><div class="subj-nm">Reasoning</div><div class="subj-info">Logical · Verbal</div></div></div>'
-    + '<div class="subj-card" onclick="toast(\'Quant coming soon!\')"><div class="subj-ico" style="background:rgba(16,185,129,.1)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg></div><div><div class="subj-nm">Quantitative</div><div class="subj-info">Arithmetic · DI</div></div></div>'
-    + '<div class="subj-card" onclick="toast(\'Current Affairs coming soon!\')"><div class="subj-ico" style="background:rgba(34,211,238,.1)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#67E8F9" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2zm0 0H2v-2a2 2 0 0 1 2-2v4z"/></svg></div><div><div class="subj-nm">Current Affairs</div><div class="subj-info">News · Events</div></div></div>'
+    + '<div style="font-size:15px;font-weight:800;margin-bottom:12px">Quick Practice</div>'
+    + '<div class="quick-actions-grid">'
+    + '<div class="qa-card" onclick="renderPYQ()" style="background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(99,102,241,.05));border-color:rgba(99,102,241,.25)">'
+    + '<div class="qa-icon" style="background:rgba(99,102,241,.15)">📋</div>'
+    + '<div class="qa-nm">PYQ Practice</div>'
+    + '<div class="qa-info">Real past papers</div>'
+    + '</div>'
+    + '<div class="qa-card" onclick="renderMG()" style="background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(16,185,129,.04));border-color:rgba(16,185,129,.2)">'
+    + '<div class="qa-icon" style="background:rgba(16,185,129,.15)">⚡</div>'
+    + '<div class="qa-nm">AI Generator</div>'
+    + '<div class="qa-info">From your notes</div>'
+    + '</div>'
+    + '<div class="qa-card" onclick="renderPYQ()" style="background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.04));border-color:rgba(245,158,11,.2)">'
+    + '<div class="qa-icon" style="background:rgba(245,158,11,.15)">📰</div>'
+    + '<div class="qa-nm">Current Affairs</div>'
+    + '<div class="qa-info">Auto-generated daily</div>'
+    + '</div>'
+    + '<div class="qa-card" onclick="go(\'lb\')" style="background:linear-gradient(135deg,rgba(34,211,238,.1),rgba(34,211,238,.04));border-color:rgba(34,211,238,.2)">'
+    + '<div class="qa-icon" style="background:rgba(34,211,238,.12)">🏆</div>'
+    + '<div class="qa-nm">Leaderboard</div>'
+    + '<div class="qa-info">Today\'s rankings</div>'
+    + '</div>'
     + '</div>'
     + '<div class="quote"><div class="q-tag">Daily Fuel</div><div class="q-txt">"' + q[0] + '"</div><div class="q-by">— ' + q[1] + '</div></div>'
     + '</div>'
@@ -1055,12 +1070,22 @@ async function renderHM() {
   aiLeft = (P && P.plan === 'pro') ? 999 : 3;
   updateAiCount();
 
-  api('user_attempts', '?user_id=eq.' + U.id + '&limit=30').then(function (at) {
+  api('user_attempts', '?user_id=eq.' + U.id + '&order=attempted_at.desc&limit=60').then(function(at) {
     if (!at || !at.length) return;
-    var avg = at.reduce(function (s, a) { return s + parseFloat(a.accuracy_pct || 0); }, 0) / at.length;
+    var avg = at.reduce(function(s, a) { return s + parseFloat(a.accuracy_pct || 0); }, 0) / at.length;
     var hac = document.getElementById('hac'); if (hac) hac.textContent = Math.round(avg) + '%';
     var hqz = document.getElementById('hqz'); if (hqz) hqz.textContent = at.length;
-    var hst = document.getElementById('hst'); if (hst) hst.textContent = at.length;
+    // Calculate real consecutive day streak
+    var streak = 0;
+    var today = new Date(); today.setHours(0,0,0,0);
+    var days = [...new Set(at.map(function(a) { return new Date(a.attempted_at).toDateString(); }))];
+    for (var i = 0; i < days.length; i++) {
+      var d = new Date(days[i]); d.setHours(0,0,0,0);
+      var expected = new Date(today); expected.setDate(today.getDate() - i);
+      if (d.getTime() === expected.getTime()) streak++;
+      else break;
+    }
+    var hst = document.getElementById('hst'); if (hst) hst.textContent = streak;
   });
 
   var td = new Date().toISOString().split('T')[0];
@@ -1237,6 +1262,8 @@ async function renderLB() {
     '</div>' +
     '<div class="bnav">' +
       '<div class="bn" onclick="renderHM()">' + NAV_SVG.home + 'Home</div>' +
+      '<div class="bn" onclick="renderMG()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>Generate</div>' +
+      '<div class="bn" onclick="renderPYQ()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PYQ</div>' +
       '<div class="bn on" onclick="go(\'lb\')">' + NAV_SVG.ranks + 'Ranks</div>' +
       '<div class="bn" onclick="go(\'pf\')">' + NAV_SVG.profile + 'Profile</div>' +
     '</div>';
@@ -1285,6 +1312,7 @@ async function renderPF() {
     if (diff > 0) trialBadge = '<div class="badge trial">⏳ ' + diff + ' day trial</div>';
   }
 
+  var isProOrTrial = (P && P.plan === 'pro') || (P && P.trial_ends_at && new Date(P.trial_ends_at) > new Date());
   el.innerHTML =
     '<div class="nav"><div class="nav-logo">' + LOGO_SVG + '<div class="nav-logo-text">Micro <span>Mock</span></div></div></div>' +
     '<div class="pbody">' +
@@ -1292,16 +1320,16 @@ async function renderPF() {
         '<div class="pf-av"><img id="pf-av-img" src="' + avUrl(seed) + '" alt=""/></div>' +
         '<div class="pf-nm">' + ((P && P.name) || 'Aspirant') + '</div>' +
         '<div class="pf-em">' + (U && U.email ? U.email : '') + '</div>' +
-        '<div class="pf-badges"><div class="badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="#A5B4FC"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2z"/></svg>Free Plan</div>' + trialBadge + '<div class="badge level">' + lvl.i + ' ' + lvl.n + '</div></div>' +
+        '<div class="pf-badges"><div class="badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="#A5B4FC"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2z"/></svg>' + (isProOrTrial ? 'Pro' : 'Free') + ' Plan</div>' + trialBadge + '<div class="badge level">' + lvl.i + ' ' + lvl.n + '</div></div>' +
       '</div>' +
       '<div class="label" style="margin-bottom:11px">Proof of Preparation Card</div>' +
       '<div class="pop-wrap">' +
-        '<div class="pop-blur">' +
+        (isProOrTrial ? '' : '<div class="pop-blur">' +
           '<div class="pop-lock-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#818CF8" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>' +
           '<div style="font-size:17px;font-weight:800">PoP Card Locked</div>' +
           '<div style="font-size:13px;color:var(--t2);text-align:center;max-width:220px;line-height:1.6">Start your free trial to unlock and share your preparation identity card</div>' +
           '<button class="btn btn-trial btn-sm" onclick="startTrial()">Start 7-Day Trial Free</button>' +
-        '</div>' +
+        '</div>') +
         '<div class="pop-inner">' +
           '<div class="pop-hd"><div class="pop-av"><img src="' + avUrl(seed) + '" alt=""/></div><div><div class="pop-nm" id="pop-nm">' + ((P && P.name) || 'Aspirant') + '</div><div class="pop-sub" id="pop-sub">Preparing for ' + ((P && P.exam_target) || 'UPSC') + '</div></div></div>' +
           '<div class="pop-grid"><div class="pop-s"><div class="pop-sn" id="pd">0</div><div class="pop-sl">Days</div></div><div class="pop-s"><div class="pop-sn" id="pa">0%</div><div class="pop-sl">Accuracy</div></div><div class="pop-s"><div class="pop-sn" id="pq">0</div><div class="pop-sl">Quizzes</div></div></div>' +
@@ -1328,6 +1356,8 @@ async function renderPF() {
     '</div>' +
     '<div class="bnav">' +
       '<div class="bn" onclick="renderHM()">' + NAV_SVG.home + 'Home</div>' +
+      '<div class="bn" onclick="renderMG()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>Generate</div>' +
+      '<div class="bn" onclick="renderPYQ()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PYQ</div>' +
       '<div class="bn" onclick="go(\'lb\')">' + NAV_SVG.ranks + 'Ranks</div>' +
       '<div class="bn on" onclick="go(\'pf\')">' + NAV_SVG.profile + 'Profile</div>' +
     '</div>';
