@@ -208,6 +208,7 @@ function renderMG() {
     + '<div class="bnav">'
     + '<div class="bn" onclick="renderHM()">' + NAV_SVG.home + 'Home</div>'
     + '<div class="bn on"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>Generate</div>'
+    + '<div class="bn" onclick="renderPYQ()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PYQ</div>'
     + '<div class="bn" onclick="go(\'lb\')">' + NAV_SVG.ranks + 'Ranks</div>'
     + '<div class="bn" onclick="go(\'pf\')">' + NAV_SVG.profile + 'Profile</div>'
     + '</div>';
@@ -224,8 +225,7 @@ function renderMGLocked() {
 
 function renderMGForm(remaining) {
   return '<div class="mg-hero">'
-    + '<div class="mg-spark">' + sparkSVG('think', 52) + '</div>'
-    + '<div class="mg-hero-t">Turn anything into MCQs</div>'
+    + '<div class="mg-hero-t">Turn anything into MCQs ⚡</div>'
     + '<div class="mg-hero-s">Photo · PDF · Text → instant practice questions</div>'
     + '<div class="mg-trial-chip">✨ ' + remaining + ' free generations remaining</div>'
     + '</div>'
@@ -400,7 +400,7 @@ async function generateMCQs() {
 
   if (btn) { btn.disabled = true; btn.textContent = '✨ Generating...'; }
   var resultsEl = document.getElementById('mg-results');
-  if (resultsEl) resultsEl.innerHTML = '<div class="mg-loading"><div class="mg-loading-spark">' + sparkSVG('think', 48) + '</div><div class="mg-loading-t">Spark is reading your content...</div><div class="mg-loading-s">This takes about 5-10 seconds</div></div>';
+  if (resultsEl) resultsEl.innerHTML = '<div class="mg-loading"><div class="mg-loading-t">Generating your MCQs...</div><div class="mg-loading-s">This takes about 5-10 seconds ⏳</div></div>';
 
   try {
     var r = await fetch(GEN_URL, {
@@ -455,8 +455,8 @@ function showMGReady(mcqs, remaining) {
   if (!el) return;
   var subjects = [...new Set(mcqs.map(function(q) { return q.subject || 'General'; }))].slice(0, 3);
   el.innerHTML = '<div class="mg-ready">'
-    + '<div class="mg-ready-spark">' + sparkSVG('celebrate', 56) + '</div>'
-    + '<div class="mg-ready-t">Your quiz is ready! 🎯</div>'
+    + '<div style="font-size:48px;margin-bottom:12px">🎯</div>'
+    + '<div class="mg-ready-t">Your quiz is ready!</div>'
     + '<div class="mg-ready-s">' + mcqs.length + ' questions generated from your content</div>'
     + '<div class="mg-ready-pills">'
     + subjects.map(function(s) { return '<div class="mg-ready-pill">📚 ' + s + '</div>'; }).join('')
@@ -712,7 +712,7 @@ async function renderPYQ() {
     + '</div>'
     + '<div class="bnav">'
     + '<div class="bn" onclick="renderHM()">' + NAV_SVG.home + 'Home</div>'
-    + '<div class="bn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>Generate</div>'
+    + '<div class="bn" onclick="renderMG()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>Generate</div>'
     + '<div class="bn on"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PYQ</div>'
     + '<div class="bn" onclick="go(\'lb\')">' + NAV_SVG.ranks + 'Ranks</div>'
     + '<div class="bn" onclick="go(\'pf\')">' + NAV_SVG.profile + 'Profile</div>'
@@ -1018,7 +1018,7 @@ async function renderHM() {
     + '</div>'
     + '<div class="hbody">'
     + '<div class="greet"><div><div class="greet-sub">Good to see you 👋</div><div class="greet-name">' + nm + '</div></div>'
-    + '<div class="spark-greet-wrap"><div class="spark-greet-mascot">' + sparkSVG('happy', 52) + '</div><div class="streak-chip"><svg width="13" height="13" viewBox="0 0 24 24" fill="#FCD34D"><path d="M12 2c0 0-6 6-6 12a6 6 0 0 0 12 0c0-6-6-12-6-12z"/></svg><span id="hst">0</span> days</div></div></div>'
+    + '<div class="streak-chip"><svg width="13" height="13" viewBox="0 0 24 24" fill="#FCD34D"><path d="M12 2c0 0-6 6-6 12a6 6 0 0 0 12 0c0-6-6-12-6-12z"/></svg><span id="hst">0</span> days</div></div>'
     + trialHTML
     + '<div class="xp-bar-wrap"><div class="xp-top"><div class="level-badge"><span id="level-icon">⚡</span><span class="level-name" id="level-nm">Rookie</span></div><span class="xp-count" id="xp-count">' + xp + ' / 100 XP</span></div><div class="xp-track"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div></div>'
     + '<div class="qhero"><div class="qhero-orb1"></div><div class="qhero-orb2"></div>'
@@ -1044,10 +1044,10 @@ async function renderHM() {
     + '<div class="qa-nm">AI Generator</div>'
     + '<div class="qa-info">From your notes</div>'
     + '</div>'
-    + '<div class="qa-card" onclick="renderPYQ()" style="background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.04));border-color:rgba(245,158,11,.2)">'
-    + '<div class="qa-icon" style="background:rgba(245,158,11,.15)">📰</div>'
-    + '<div class="qa-nm">Current Affairs</div>'
-    + '<div class="qa-info">Auto-generated daily</div>'
+    + '<div class="qa-card" onclick="bQz()" style="background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.04));border-color:rgba(245,158,11,.2)">'
+    + '<div class="qa-icon" style="background:rgba(245,158,11,.15)">🎯</div>'
+    + '<div class="qa-nm">Daily Quiz</div>'
+    + '<div class="qa-info">Auto-generated MCQs</div>'
     + '</div>'
     + '<div class="qa-card" onclick="go(\'lb\')" style="background:linear-gradient(135deg,rgba(34,211,238,.1),rgba(34,211,238,.04));border-color:rgba(34,211,238,.2)">'
     + '<div class="qa-icon" style="background:rgba(34,211,238,.12)">🏆</div>'
@@ -1222,7 +1222,7 @@ function renderRS(score, acc, sec, xpGained, beatTxt, wasGen) {
     '<div class="res-wrap">' +
       '<div class="res-main">' +
         '<div class="res-glow"></div>' +
-        '<div class="res-av spark-res-av">' + sparkSVG(score >= 7 ? 'celebrate' : score >= 4 ? 'happy' : 'neutral', 72) + '</div>' +
+        '<div class="res-av"><img src="' + avUrl(seed) + '" alt=""/></div>' +
         '<div class="res-score">' + score + '<span>/10</span></div>' +
         '<div class="res-title">' + title + '</div>' +
         '<div class="res-sub">Here\'s how you did today</div>' +
