@@ -446,3 +446,44 @@ body { font-family: -apple-system, 'SF Pro Display', 'Segoe UI', system-ui, sans
 .qa-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 10px; }
 .qa-nm { font-size: 13px; font-weight: 800; margin-bottom: 2px; }
 .qa-info { font-size: 11px; color: var(--t3); }
+
+/* ── LIGHT MODE ── */
+body.light {
+  --bg: #F1F5F9; --s1: #FFFFFF; --s2: #F8FAFC; --s3: #E2E8F0;
+  --t1: #0F172A; --t2: #475569; --t3: #94A3B8;
+  --bd: rgba(0,0,0,.08); --bd2: rgba(0,0,0,.12);
+  --gl: rgba(0,0,0,.03); --gl2: rgba(0,0,0,.06);
+}
+body.light .nav { background: rgba(241,245,249,.92); border-bottom-color: rgba(0,0,0,.08); }
+body.light .bnav { background: rgba(241,245,249,.95); border-top-color: rgba(0,0,0,.08); }
+body.light .chat-panel { background: #fff; }
+body.light .msg.ai .msg-bubble { background: #F1F5F9; color: #0F172A; }
+body.light .t-inner { background: rgba(255,255,255,.97) !important; color: #0F172A; }
+body.light .opt { background: #fff; border-color: rgba(0,0,0,.12); color: #0F172A; }
+body.light .exp { background: rgba(16,185,129,.06); }
+body.light .lg-sheet { background: #fff; }
+body.light .lg-bg { background: radial-gradient(ellipse at 50% -10%, rgba(99,102,241,.12), transparent 60%); }
+body.light #sp { background: #F1F5F9; }
+body.light .qhero { background: linear-gradient(135deg, #EEF2FF, #F0FDF4); border-color: rgba(99,102,241,.15); }
+body.light .res-main { background: linear-gradient(135deg, #EEF2FF, #F0FDF4); }
+body.light .pf-hero { background: linear-gradient(135deg, #EEF2FF, #F0FDF4); }
+body.light .up-card { background: linear-gradient(135deg, #EEF2FF, #F0FDF4); }
+body.light .pop-tease { background: linear-gradient(135deg, #EEF2FF, #F0FDF4); }
+body.light .pop-wrap { background: linear-gradient(135deg, #EEF2FF, #F0FDF4); }
+body.light .mg-input-box { background: #fff; }
+body.light .mg-textarea { background: #fff; color: #0F172A; }
+body.light .chat-inp { background: #F8FAFC; color: #0F172A; }
+body.light .adm-pill { background: #F8FAFC; color: #475569; border-color: rgba(0,0,0,.1); }
+body.light .pyq-set-card { background: #fff; }
+body.light .pyq-exam-tab { background: #fff; color: #475569; border-color: rgba(0,0,0,.1); }
+body.light .gen-hist-card { background: #fff; }
+body.light .ob-chat-msg.ai .ob-chat-bubble { background: #F1F5F9; color: #0F172A; }
+body.light .ob-lb-row { background: #fff; border-color: rgba(0,0,0,.08); }
+
+/* Theme toggle button */
+.theme-toggle { width: 44px; height: 26px; background: var(--s3); border-radius: 13px; position: relative; cursor: pointer; border: none; transition: background .3s; flex-shrink: 0; }
+.theme-toggle.on { background: var(--brand); }
+.theme-toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform .3s; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
+.theme-toggle.on::after { transform: translateX(18px); }
+.theme-row { display: flex; align-items: center; justify-content: space-between; background: var(--s1); border: 1px solid var(--bd); border-radius: var(--r); padding: 14px 16px; margin-bottom: 12px; }
+.theme-row-left { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 700; }
