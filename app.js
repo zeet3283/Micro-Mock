@@ -914,6 +914,21 @@ async function uploadPYQs() {
   btn.disabled = false; btn.textContent = '⬆️ Upload PYQs';
 }
 
+// ── THEME ──
+function initTheme() {
+  var saved = localStorage.getItem('mm_theme');
+  if (saved === 'light') document.body.classList.add('light');
+}
+function toggleTheme() {
+  var isLight = document.body.classList.toggle('light');
+  localStorage.setItem('mm_theme', isLight ? 'light' : 'dark');
+  // Update all theme toggles on screen
+  document.querySelectorAll('.theme-toggle').forEach(function(t) {
+    t.classList.toggle('on', isLight);
+  });
+}
+initTheme();
+
 // ── BOOT ──
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function () { setTimeout(init, 100); });
@@ -1348,7 +1363,11 @@ async function renderPF() {
         '</div>' +
         '<button class="btn btn-trial" onclick="window.open(\'https://rzp.io/rzp/zJ6jF8B\',\'_blank\')" style="font-size:16px;padding:17px;margin-bottom:10px">Upgrade Now — ₹149/month →</button>' +
       '</div>' +
-      '<button class="btn" style="background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.18);color:#FDA4AF;margin-top:4px" onclick="logout()">Sign Out</button>'
+      '<div class="theme-row">'
+      + '<div class="theme-row-left"><span style="font-size:18px">' + (document.body.classList.contains('light') ? '☀️' : '🌙') + '</span><div><div style="font-size:14px;font-weight:700">' + (document.body.classList.contains('light') ? 'Light Mode' : 'Dark Mode') + '</div><div style="font-size:11px;color:var(--t3);margin-top:1px">Tap to switch</div></div></div>'
+      + '<button class="theme-toggle' + (document.body.classList.contains('light') ? ' on' : '') + '" onclick="toggleTheme();renderPF()"></button>'
+      + '</div>'
+      + '<button class="btn" style="background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.18);color:#FDA4AF;margin-top:4px" onclick="logout()">Sign Out</button>'
     + '<div class="gen-hist-section" style="margin-top:18px">'
     + '<div class="gen-hist-hdr"><div class="gen-hist-title">⚡ Generated Quiz History</div><button class="btn-sm btn-g" onclick="renderMG()" style="font-size:11px;padding:6px 12px;width:auto">+ New</button></div>'
     + '<div class="gen-hist-list" id="gen-hist-list"><div style="text-align:center;padding:20px;color:var(--t3);font-size:13px">Loading...</div></div>'
