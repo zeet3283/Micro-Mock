@@ -27,7 +27,7 @@
     <div class="chat-handle"></div>
     <div class="chat-hdr">
       <div class="chat-hdr-left">
-        <div class="spark-chat-av" id="spark-chat-av"></div>
+        <div class="ai-av" id="spark-chat-av"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/></svg></div>
         <div><div class="chat-title">Prep Assistant</div><div class="chat-sub">Powered by Groq AI</div></div>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
@@ -221,13 +221,5 @@ function obNext() {
 }
 </script>
 <script src="app.js?v=10"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  var chatAv = document.getElementById('spark-chat-av');
-  if (chatAv && typeof sparkSVG === 'function') chatAv.innerHTML = sparkSVG('neutral', 36);
-  var ob1 = document.getElementById('spark-ob1');
-  if (ob1 && typeof sparkSVG === 'function') ob1.innerHTML = sparkSVG('happy', 72);
-});
-</script>
 </body>
 </html>
