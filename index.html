@@ -1,227 +1,368 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
-<meta name="theme-color" content="#6366F1"/>
-<meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-title" content="Micro Mock"/>
-<title>Micro Mock — Daily MCQ Practice</title>
-<link rel="stylesheet" href="style.css?v=10"/>
-<script>if(localStorage.getItem('mm_theme')==='light')document.documentElement.classList.add('light-pre');</script>
-<style>.light-pre body,.light-pre{background:#F1F5F9!important}</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <!-- CSP: update connect-src when you add your custom domain -->
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self';
+             script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
+             style-src 'self' 'unsafe-inline';
+             img-src 'self' data: https://api.dicebear.com;
+             connect-src 'self' https://xkijsokwttuypxcgppbe.supabase.co;
+             worker-src https://cdnjs.cloudflare.com blob:;
+             frame-ancestors 'none';
+             base-uri 'self';">
+  <title>Micro Mock — Daily MCQ Practice</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- TOAST -->
-<div class="toast" id="toast"><div class="t-inner" id="t-inner"></div></div>
+  <!-- ── TOAST ── -->
+  <div id="toast" class="toast">
+    <div id="t-inner" class="t-inner"></div>
+  </div>
 
-<!-- AI FAB -->
-<button class="ai-fab" id="ai-fab" style="display:none" onclick="openChat()">
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h8M8 14h5"/></svg>
-  <span class="badge-count" id="ai-count" style="display:none">3</span>
-</button>
+  <!-- ── AI FAB ── -->
+  <button class="ai-fab" id="ai-fab" style="display:none" onclick="openChat()" aria-label="Open AI Tutor">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+      <path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/>
+      <path d="M12 8v4l3 3"/>
+    </svg>
+    <div class="badge-count" id="ai-count" style="display:none">3</div>
+  </button>
 
-<!-- CHAT DRAWER -->
-<div class="chat-drawer" id="chat-drawer">
-  <div class="chat-overlay" onclick="closeChat()"></div>
-  <div class="chat-panel">
-    <div class="chat-handle"></div>
-    <div class="chat-hdr">
-      <div class="chat-hdr-left">
-        <div class="ai-av" id="spark-chat-av"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/></svg></div>
-        <div><div class="chat-title">Prep Assistant</div><div class="chat-sub">Powered by Groq AI</div></div>
+  <!-- ── CHAT DRAWER ── -->
+  <div id="chat-drawer" class="chat-drawer">
+    <div class="chat-overlay" onclick="closeChat()"></div>
+    <div class="chat-panel">
+      <div class="chat-handle"></div>
+      <div class="chat-hdr">
+        <div class="chat-hdr-left">
+          <div class="ai-av">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <div>
+            <div class="chat-title">Prep Assistant</div>
+            <div class="chat-sub">Powered by Groq AI</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="chat-limit" id="chat-limit-badge">3 left</div>
+          <button class="chat-close" onclick="closeChat()">✕</button>
+        </div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <div class="chat-limit" id="chat-limit-badge">3 left</div>
-        <button class="chat-close" onclick="closeChat()">✕</button>
-      </div>
-    </div>
-    <div class="chat-msgs" id="chat-msgs">
-      <div class="ctx-banner" id="ctx-banner" style="display:none">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A5B4FC" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <!-- Context Banner -->
+      <div class="ctx-banner" id="ctx-banner" style="display:none;margin:0 16px 8px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 8v4l3 3"/>
+        </svg>
         <span id="ctx-text">Asking about current question</span>
       </div>
-      <div class="quick-chips" id="quick-chips">
-        <button class="qchip" onclick="sendQuick('Explain this question simply')">Explain this</button>
-        <button class="qchip" onclick="sendQuick('Why is this the correct answer?')">Why correct?</button>
-        <button class="qchip" onclick="sendQuick('Give me a memory trick for this')">Memory tip</button>
-        <button class="qchip" onclick="sendQuick('Related topics I should study')">Related topics</button>
-      </div>
-    </div>
-    <div class="chat-foot">
-      <textarea class="chat-inp" id="chat-inp" placeholder="Ask anything about your exam..." rows="1"
-        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"
-        oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'"></textarea>
-      <button class="chat-send" id="chat-send" onclick="sendMsg()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- SPLASH -->
-<div class="pg on" id="sp">
-  <div class="orb orb1"></div><div class="orb orb2"></div>
-  <div class="sp-wrap">
-    <div class="sp-logo">
-      <svg width="80" height="80" viewBox="0 0 72 72" fill="none">
-        <rect width="72" height="72" rx="20" fill="url(#g1)"/>
-        <path d="M40 14L22 40h14l-4 18 22-24H40L42 14z" fill="white"/>
-        <circle cx="52" cy="52" r="12" fill="url(#g2)"/>
-        <path d="M47 52l3 3 5-6" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <defs>
-          <linearGradient id="g1" x1="0" y1="0" x2="72" y2="72"><stop offset="0%" stop-color="#6366F1"/><stop offset="100%" stop-color="#8B5CF6"/></linearGradient>
-          <linearGradient id="g2" x1="40" y1="40" x2="64" y2="64"><stop offset="0%" stop-color="#10B981"/><stop offset="100%" stop-color="#059669"/></linearGradient>
-        </defs>
-      </svg>
-    </div>
-    <div class="sp-t">Micro Mock</div>
-    <div class="sp-s">UPSC · SSC · Banking · RBI</div>
-    <div class="sp-dots"><div class="sp-dot"></div><div class="sp-dot"></div><div class="sp-dot"></div></div>
-  </div>
-</div>
-
-<!-- ONBOARDING SLIDES -->
-<div class="pg" id="on">
-  <div class="ob-slides" id="ob-slides">
-    <!-- Slide 1 -->
-    <div class="ob-slide">
-      <div class="ob-orb1"></div><div class="ob-orb2"></div>
-      <div class="ob-art">
-        <div class="ob-icon-ring" id="spark-ob1"></div>
-        <div class="ob-floating-pills">
-          <div class="ob-pill" style="animation-delay:0s">UPSC 2025</div>
-          <div class="ob-pill" style="animation-delay:.4s">SSC CGL</div>
-          <div class="ob-pill" style="animation-delay:.8s">IBPS PO</div>
-          <div class="ob-pill" style="animation-delay:1.2s">RBI Grade B</div>
+      <!-- Messages -->
+      <div class="chat-msgs" id="chat-msgs"></div>
+      <!-- Quick Chips -->
+      <div style="padding:0 16px 10px">
+        <div class="quick-chips" id="quick-chips">
+          <button class="qchip" onclick="sendQuick('Explain this')">Explain this</button>
+          <button class="qchip" onclick="sendQuick('Why correct?')">Why correct?</button>
+          <button class="qchip" onclick="sendQuick('Memory tip')">Memory tip</button>
+          <button class="qchip" onclick="sendQuick('Related topics')">Related topics</button>
         </div>
       </div>
-      <div class="ob-content">
-        <div class="ob-badge">Daily Practice</div>
-        <h1 class="ob-h">10 Questions.<br/><span class="grad-text">Every Single Day.</span></h1>
-        <p class="ob-p">Fresh MCQs curated for your exam. Build the habit that toppers swear by — consistency beats cramming.</p>
+      <!-- Input -->
+      <div class="chat-foot">
+        <textarea class="chat-inp" id="chat-inp" placeholder="Ask anything about this question..." rows="1"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"
+          oninput="this.style.height='44px';this.style.height=Math.min(this.scrollHeight,100)+'px'"></textarea>
+        <button class="chat-send" id="chat-send" onclick="sendMsg()" aria-label="Send">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
       </div>
     </div>
-    <!-- Slide 2 -->
-    <div class="ob-slide">
-      <div class="ob-orb1" style="background:radial-gradient(circle,rgba(16,185,129,.2),transparent 70%)"></div>
-      <div class="ob-orb2" style="background:radial-gradient(circle,rgba(99,102,241,.15),transparent 70%)"></div>
-      <div class="ob-art">
-        <div class="ob-chat-demo">
-          <div class="ob-chat-msg ai"><div class="ob-chat-av">⚡</div><div class="ob-chat-bubble">Article 21 guarantees the right to life and personal liberty...</div></div>
-          <div class="ob-chat-msg user"><div class="ob-chat-bubble user">Give me a memory trick!</div><div class="ob-chat-av">👤</div></div>
-          <div class="ob-chat-msg ai"><div class="ob-chat-av">⚡</div><div class="ob-chat-bubble">Think "21 = Life" — you need life to do anything at 21 🎯</div></div>
+  </div>
+
+  <!-- ── SPLASH ── -->
+  <div id="sp" class="pg on">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="sp-wrap">
+      <div class="sp-logo">
+        <svg width="72" height="72" viewBox="0 0 72 72" fill="none">
+          <rect width="72" height="72" rx="20" fill="url(#spl1)"/>
+          <path d="M40 14L22 40h14l-4 18 22-24H40L42 14z" fill="white"/>
+          <defs>
+            <linearGradient id="spl1" x1="0" y1="0" x2="72" y2="72">
+              <stop offset="0%" stop-color="#6366F1"/>
+              <stop offset="100%" stop-color="#8B5CF6"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <div class="sp-t">Micro Mock</div>
+      <div class="sp-s">India's sharpest MCQ engine</div>
+      <div class="sp-dots">
+        <div class="sp-dot"></div>
+        <div class="sp-dot"></div>
+        <div class="sp-dot"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ONBOARDING SLIDES ── -->
+  <div id="on" class="pg">
+    <div class="ob-slides" id="ob-slides">
+
+      <!-- Slide 1: Daily Practice -->
+      <div class="ob-slide">
+        <div class="ob-orb1"></div>
+        <div class="ob-orb2"></div>
+        <div class="ob-art">
+          <div class="ob-floating-pills">
+            <div class="ob-pill">UPSC 2025</div>
+            <div class="ob-pill">SSC CGL</div>
+            <div class="ob-pill">IBPS PO</div>
+            <div class="ob-pill">RBI Grade B</div>
+          </div>
+          <div class="ob-icon-ring">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#818CF8" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+          </div>
+        </div>
+        <div class="ob-content">
+          <div class="ob-badge">Daily Habit</div>
+          <div class="ob-h">10 Questions.<br/>Every Single Day.</div>
+          <div class="ob-p">Fresh MCQs curated for your exam. Build the habit that toppers swear by — consistency beats cramming.</div>
         </div>
       </div>
-      <div class="ob-content">
-        <div class="ob-badge" style="background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.25);color:#6EE7B7">AI Tutor</div>
-        <h1 class="ob-h">Stuck? Just<br/><span style="background:linear-gradient(135deg,#10B981,#22D3EE);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Ask the AI.</span></h1>
-        <p class="ob-p">Get instant explanations, memory tricks and topic breakdowns. Like a personal tutor — free and always available.</p>
-      </div>
-    </div>
-    <!-- Slide 3 -->
-    <div class="ob-slide">
-      <div class="ob-orb1" style="background:radial-gradient(circle,rgba(245,158,11,.18),transparent 70%)"></div>
-      <div class="ob-orb2" style="background:radial-gradient(circle,rgba(99,102,241,.12),transparent 70%)"></div>
-      <div class="ob-art">
-        <div class="ob-leaderboard-demo">
-          <div class="ob-lb-row gold"><span class="ob-lb-rank">🥇</span><div class="ob-lb-av" style="background:linear-gradient(135deg,#6366F1,#8B5CF6)"></div><div class="ob-lb-info"><div class="ob-lb-name">Rahul S.</div><div class="ob-lb-score">9/10</div></div><div class="ob-lb-xp">+92 XP</div></div>
-          <div class="ob-lb-row silver"><span class="ob-lb-rank">🥈</span><div class="ob-lb-av" style="background:linear-gradient(135deg,#10B981,#22D3EE)"></div><div class="ob-lb-info"><div class="ob-lb-name">Priya M.</div><div class="ob-lb-score">8/10</div></div><div class="ob-lb-xp">+82 XP</div></div>
-          <div class="ob-lb-row you"><span class="ob-lb-rank">🎯</span><div class="ob-lb-av" style="background:linear-gradient(135deg,#F59E0B,#D97706)"></div><div class="ob-lb-info"><div class="ob-lb-name">You</div><div class="ob-lb-score">?/10</div></div><div class="ob-lb-xp">Soon!</div></div>
+
+      <!-- Slide 2: AI Tutor -->
+      <div class="ob-slide">
+        <div class="ob-orb1"></div>
+        <div class="ob-art">
+          <div class="ob-chat-demo">
+            <div class="ob-chat-msg user">
+              <div class="ob-chat-av" style="background:#1e293b;font-size:14px;display:flex;align-items:center;justify-content:center">👤</div>
+              <div class="ob-chat-bubble">Article 21 guarantees the right to life and personal liberty... Give me a memory trick!</div>
+            </div>
+            <div class="ob-chat-msg ai">
+              <div class="ob-chat-av">⚡</div>
+              <div class="ob-chat-bubble">Think "21 = Life" — you need life to do anything at 21 🎯</div>
+            </div>
+          </div>
+        </div>
+        <div class="ob-content">
+          <div class="ob-badge">AI Powered</div>
+          <div class="ob-h">Stuck? Just<br/>Ask the AI.</div>
+          <div class="ob-p">Get instant explanations, memory tricks and topic breakdowns. Like a personal tutor — free and always available.</div>
         </div>
       </div>
-      <div class="ob-content">
-        <div class="ob-badge" style="background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.25);color:#FCD34D">Leaderboard</div>
-        <h1 class="ob-h">Compete.<br/><span style="background:linear-gradient(135deg,#F59E0B,#F97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Prove It.</span></h1>
-        <p class="ob-p">Rank against aspirants across India. Earn XP, climb the board and show your family the proof of your preparation.</p>
+
+      <!-- Slide 3: Leaderboard -->
+      <div class="ob-slide">
+        <div class="ob-orb2"></div>
+        <div class="ob-art">
+          <div class="ob-leaderboard-demo">
+            <div class="ob-lb-row gold">
+              <div class="ob-lb-rank">🥇</div>
+              <img class="ob-lb-av" src="https://api.dicebear.com/7.x/shapes/svg?seed=rahul&backgroundColor=f59e0b&backgroundType=gradientLinear" alt=""/>
+              <div style="flex:1">
+                <div class="ob-lb-name">Rahul S.</div>
+                <div class="ob-lb-score">9/10</div>
+              </div>
+              <div class="ob-lb-xp">+92 XP</div>
+            </div>
+            <div class="ob-lb-row">
+              <div class="ob-lb-rank">🥈</div>
+              <img class="ob-lb-av" src="https://api.dicebear.com/7.x/shapes/svg?seed=priya&backgroundColor=94a3b8&backgroundType=gradientLinear" alt=""/>
+              <div style="flex:1">
+                <div class="ob-lb-name">Priya M.</div>
+                <div class="ob-lb-score">8/10</div>
+              </div>
+              <div class="ob-lb-xp">+82 XP</div>
+            </div>
+            <div class="ob-lb-row you">
+              <div class="ob-lb-rank">🎯</div>
+              <div class="ob-lb-av" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:14px">✨</div>
+              <div style="flex:1">
+                <div class="ob-lb-name">You</div>
+                <div class="ob-lb-score">?/10</div>
+              </div>
+              <div class="ob-lb-xp" style="color:#a5b4fc">Soon!</div>
+            </div>
+          </div>
+        </div>
+        <div class="ob-content">
+          <div class="ob-badge">Compete</div>
+          <div class="ob-h">Compete.<br/>Prove It.</div>
+          <div class="ob-p">Rank against aspirants across India. Earn XP, climb the board and show your family the proof of your preparation.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dots + Buttons -->
+    <div class="ob-footer">
+      <div class="ob-dots">
+        <div class="ob-d on"></div>
+        <div class="ob-d"></div>
+        <div class="ob-d"></div>
+      </div>
+      <button class="btn btn-p ob-next-btn" id="ob-next-btn" onclick="obGoNext()">Next →</button>
+      <button class="ob-skip" onclick="obSkip()">Skip</button>
+    </div>
+  </div>
+
+  <!-- ── LOGIN ── -->
+  <div id="lg" class="pg">
+    <div class="lg-bg"></div>
+    <div class="lg-hero">
+      <div class="lg-badge">🇮🇳 Made for India's Aspirants</div>
+      <h1 class="h1" style="margin-top:12px">Crack Your<br/><span class="grad-text">Govt Exam</span></h1>
+      <p class="body" style="max-width:280px;margin-top:10px">Daily quizzes. Real AI help. Proof of your preparation.</p>
+      <div class="social-proof">
+        <div class="sp-avatars">
+          <img src="https://api.dicebear.com/7.x/shapes/svg?seed=av1&backgroundColor=6366f1&backgroundType=gradientLinear" alt=""/>
+          <img src="https://api.dicebear.com/7.x/shapes/svg?seed=av2&backgroundColor=10b981&backgroundType=gradientLinear" alt=""/>
+          <img src="https://api.dicebear.com/7.x/shapes/svg?seed=av3&backgroundColor=f59e0b&backgroundType=gradientLinear" alt=""/>
+          <img src="https://api.dicebear.com/7.x/shapes/svg?seed=av4&backgroundColor=8b5cf6&backgroundType=gradientLinear" alt=""/>
+        </div>
+        <div style="font-size:12px;color:var(--t2)"><strong style="color:var(--t1)">2,400+</strong> aspirants practicing daily</div>
+      </div>
+    </div>
+    <div class="lg-sheet">
+      <div class="sheet-handle"></div>
+      <div class="atabs">
+        <button class="atab on" onclick="stab('social')">Google</button>
+        <button class="atab" onclick="stab('email')">Email</button>
+      </div>
+      <!-- Google Tab -->
+      <div class="aform on" id="tab-social">
+        <button onclick="signGoogle()" class="social-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          Continue with Google
+        </button>
+        <div class="info-box amber">✅ Recommended — fastest sign in</div>
+      </div>
+      <!-- Email Tab -->
+      <div class="aform" id="tab-email">
+        <div class="inp-w">
+          <span class="inp-ic">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+          </span>
+          <input class="inp" id="em-inp" type="email" placeholder="Email address" autocomplete="email"/>
+        </div>
+        <div class="inp-w">
+          <span class="inp-ic">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </span>
+          <input class="inp" id="pw-inp" type="password" placeholder="Password (min 6 chars)" autocomplete="current-password"/>
+        </div>
+        <div class="info-box amber" style="margin-bottom:14px">New accounts need email confirmation</div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-p" style="flex:1" onclick="signEmail()">Sign In</button>
+          <button class="btn btn-g" style="flex:1" onclick="signUpEmail()">Create Account</button>
+        </div>
       </div>
     </div>
   </div>
-  <div class="ob-footer">
-    <div class="ob-dots"><div class="ob-d on" id="od0"></div><div class="ob-d" id="od1"></div><div class="ob-d" id="od2"></div></div>
-    <button class="btn btn-p ob-next-btn" id="ob-next-btn" onclick="obNext()">Next →</button>
-    <button class="ob-skip" onclick="go('lg')">Skip</button>
-  </div>
-</div>
 
-<!-- LOGIN -->
-<div class="pg" id="lg">
-  <div class="lg-bg"></div>
-  <div class="lg-hero">
-    <div class="lg-badge">India's Sharpest MCQ Engine</div>
-    <h1 class="h1" style="text-align:center;margin-bottom:10px">Crack Your<br/><span class="grad-text">Govt Exam</span></h1>
-    <p class="body" style="text-align:center;max-width:260px;margin:0 auto 16px">Daily quizzes. Real AI help. Proof of your preparation.</p>
-    <div class="social-proof">
-      <div class="sp-avatars">
-        <img src="https://api.dicebear.com/7.x/shapes/svg?seed=a1&backgroundColor=6366f1" alt=""/>
-        <img src="https://api.dicebear.com/7.x/shapes/svg?seed=b2&backgroundColor=10b981" alt=""/>
-        <img src="https://api.dicebear.com/7.x/shapes/svg?seed=c3&backgroundColor=f59e0b" alt=""/>
+  <!-- ── PROFILE SETUP ── -->
+  <div id="ob" class="pg">
+    <div style="flex:1;display:flex;flex-direction:column;padding:40px 24px 20px;position:relative;overflow:hidden">
+      <div class="orb orb1"></div>
+      <div style="position:relative;z-index:1;flex:1;display:flex;flex-direction:column;justify-content:center">
+        <div class="label" style="margin-bottom:6px">Quick Setup</div>
+        <div class="h2" style="margin-bottom:6px">Set up your profile</div>
+        <div class="body" style="margin-bottom:24px">Personalise your daily practice in 10 seconds</div>
+        <div class="label" style="margin-bottom:8px">Your Name</div>
+        <div class="inp-w" style="margin-bottom:20px">
+          <span class="inp-ic">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </span>
+          <input class="inp" id="obn" type="text" placeholder="Enter your name" maxlength="50" autocomplete="name"/>
+        </div>
+        <div class="label" style="margin-bottom:4px">Target Exam</div>
+        <div class="exam-grid">
+          <div class="exam-card" onclick="pEx(this,'UPSC')">
+            <div class="exam-icon-wrap" style="background:rgba(99,102,241,.12)">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#818CF8" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+            </div>
+            <div class="exam-name">UPSC</div>
+            <div class="exam-sub">Civil Services</div>
+          </div>
+          <div class="exam-card" onclick="pEx(this,'SSC')">
+            <div class="exam-icon-wrap" style="background:rgba(16,185,129,.12)">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+            </div>
+            <div class="exam-name">SSC</div>
+            <div class="exam-sub">CGL / CHSL</div>
+          </div>
+          <div class="exam-card" onclick="pEx(this,'Banking')">
+            <div class="exam-icon-wrap" style="background:rgba(245,158,11,.12)">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FCD34D" stroke-width="2">
+                <line x1="12" y1="1" x2="12" y2="23"/>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            </div>
+            <div class="exam-name">Banking</div>
+            <div class="exam-sub">IBPS / SBI</div>
+          </div>
+          <div class="exam-card" onclick="pEx(this,'RBI')">
+            <div class="exam-icon-wrap" style="background:rgba(34,211,238,.12)">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22D3EE" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 8v4l3 3"/>
+              </svg>
+            </div>
+            <div class="exam-name">RBI</div>
+            <div class="exam-sub">Grade B</div>
+          </div>
+        </div>
+        <button class="btn btn-p" onclick="fOb()">Start My Journey →</button>
       </div>
-      <span style="font-size:12px;color:var(--t2)"><strong style="color:var(--t1)">2,400+</strong> aspirants practicing daily</span>
     </div>
   </div>
-  <div class="lg-sheet">
-    <div class="sheet-handle"></div>
-    <div class="atabs">
-      <button class="atab on" onclick="stab('social')">Google</button>
-      <button class="atab" onclick="stab('email')">Email</button>
-    </div>
-    <div class="aform on" id="tab-social">
-      <a class="social-btn" href="https://xkijsokwttuypxcgppbe.supabase.co/auth/v1/authorize?provider=google&redirect_to=https://zeet3283.github.io/Micro-Mock/">
-        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-        Continue with Google
-      </a>
-      <p style="font-size:12px;color:var(--t3);text-align:center;margin-top:10px">✅ Recommended — fastest sign in</p>
-    </div>
-    <div class="aform" id="tab-email">
-      <div class="inp-w"><div class="inp-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg></div><input class="inp" id="em-inp" type="email" placeholder="your@email.com"/></div>
-      <div class="inp-w"><div class="inp-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><input class="inp" id="pw-inp" type="password" placeholder="Password (min 6 chars)"/></div>
-      <button class="btn btn-p" onclick="signEmail()" style="margin-bottom:10px">Sign In</button>
-      <button class="btn btn-g" onclick="signUpEmail()">Create New Account</button>
-      <p style="font-size:12px;color:var(--t3);margin-top:10px;text-align:center">New accounts need email confirmation</p>
-    </div>
-  </div>
-</div>
 
-<!-- PROFILE SETUP -->
-<div class="pg" id="ob" style="justify-content:center;padding:24px">
-  <div style="width:100%;max-width:380px">
-    <div class="label" style="margin-bottom:6px">Quick Setup</div>
-    <h2 class="h2" style="margin-bottom:6px">Set up your profile</h2>
-    <p class="body" style="margin-bottom:22px">Personalise your daily practice in 10 seconds</p>
-    <div class="inp-w"><div class="inp-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><input class="inp" id="obn" placeholder="Your full name" type="text"/></div>
-    <div class="label" style="margin-bottom:12px">Target Exam</div>
-    <div class="exam-grid">
-      <div class="exam-card" onclick="pEx(this,'UPSC')"><div class="exam-icon-wrap" style="background:rgba(99,102,241,.1)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#818CF8" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><div class="exam-name">UPSC</div><div class="exam-sub">Civil Services</div></div>
-      <div class="exam-card" onclick="pEx(this,'SSC')"><div class="exam-icon-wrap" style="background:rgba(16,185,129,.1)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div><div class="exam-name">SSC</div><div class="exam-sub">CGL / CHSL</div></div>
-      <div class="exam-card" onclick="pEx(this,'Banking')"><div class="exam-icon-wrap" style="background:rgba(245,158,11,.1)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FCD34D" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div><div class="exam-name">Banking</div><div class="exam-sub">IBPS / SBI</div></div>
-      <div class="exam-card" onclick="pEx(this,'RBI')"><div class="exam-icon-wrap" style="background:rgba(34,211,238,.1)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#67E8F9" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="exam-name">RBI</div><div class="exam-sub">Grade B</div></div>
-    </div>
-    <button class="btn btn-p" onclick="fOb()">Start My Journey →</button>
-  </div>
-</div>
+  <!-- ── DYNAMIC PAGES (all populated by JS) ── -->
+  <div id="hm" class="pg"></div>
+  <div id="qz" class="pg"></div>
+  <div id="rs" class="pg"></div>
+  <div id="lb" class="pg"></div>
+  <div id="pf" class="pg"></div>
+  <div id="mg" class="pg"></div>
+  <div id="pyq" class="pg"></div>
 
-<!-- SCREENS (rendered by JS) -->
-<div class="pg" id="hm" style="justify-content:flex-start"></div>
-<div class="pg" id="qz" style="justify-content:flex-start"></div>
-<div class="pg" id="rs" style="justify-content:center;padding:20px;align-items:center"></div>
-<div class="pg" id="lb" style="justify-content:flex-start"></div>
-<div class="pg" id="pf" style="justify-content:flex-start"></div>
-<div class="pg" id="mg" style="justify-content:flex-start"></div>
-<div class="pg" id="pyq" style="justify-content:flex-start"></div>
-<div class="pg" id="adm" style="justify-content:flex-start"></div>
-
-<script>
-var obIdx = 0, obTotal = 3;
-function obNext() {
-  obIdx++;
-  if (obIdx >= obTotal) { go('lg'); return; }
-  document.getElementById('ob-slides').style.transform = 'translateX(-' + (obIdx * 33.333) + '%)';
-  for (var i = 0; i < obTotal; i++) { var d = document.getElementById('od' + i); if (d) d.classList.toggle('on', i === obIdx); }
-  var btn = document.getElementById('ob-next-btn'); if (btn) btn.textContent = obIdx === obTotal - 1 ? 'Get Started →' : 'Next →';
-}
-</script>
-<script src="app.js?v=10"></script>
+  <script src="app.js"></script>
 </body>
 </html>
