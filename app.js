@@ -1,18 +1,8 @@
 // ── CONFIG ──
 var SB = 'https://xkijsokwttuypxcgppbe.supabase.co';
-var KEY =
-'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhraWpzb2t3dHR1eXB4Y2dwcGJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODE4NzcsImV4cCI6MjA4ODY1Nzg3N30.GVnoXPvWaPtStQpqRV5ozUwjbJJhhl1Iba660Z8aa8';
+var KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhraWpzb2t3dHR1eXB4Y2dwcGJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODE4NzcsImV4cCI6MjA4ODY1Nzg3N30.GVnoXPvWaPtStQpqRV5ozUwjb-JJhhl1Iba660Z8aa8';
+var H = { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json' };
 var EDGE_URL = 'https://xkijsokwttuypxcgppbe.supabase.co/functions/v1/Chat';
-
-// ── FIX #1: Dynamic auth header — uses logged-in user's JWT, not anon key ──
-function getH() {
-  var tk = localStorage.getItem('mm_tk') || KEY;
-  return {
-    'apikey': KEY,
-    'Authorization': 'Bearer ' + tk,
-    'Content-Type': 'application/json'
-  };
-}
 
 // ── SECURITY: HTML escape ──
 // Use on every user-sourced string before inserting into innerHTML
@@ -24,6 +14,7 @@ function esc(s) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#x27;');
 }
+
 // ── SECURITY: hash seed before sending to dicebear (don't expose real UUIDs) ──
 function hashSeed(str) {
   var h = 5381;
@@ -32,6 +23,7 @@ function hashSeed(str) {
   }
   return (h >>> 0).toString(36);
 }
+
 // ── CONSTANTS ──
 var LEVELS = [
   { n: 'Rookie',   i: '⚡',  min: 0    },
@@ -50,24 +42,24 @@ var QUOTES = [
 ];
 var NAV_SVG = {
   home: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
-  ranks: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M8 21h8M12 17v4M17 7l-5-5-5 5v10h10z"/><path d="M6 7H2v10h4M22 7h4v10h4"/></svg>',
+  ranks: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M8 21h8M12 17v4M17 7l-5-5-5 5v10h10z"/><path d="M6 7H2v10h4M22 7h-4v10h4"/></svg>',
   profile: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
 };
 var LOGO_SVG = '<svg width="26" height="26" viewBox="0 0 72 72" fill="none"><rect width="72" height="72" rx="20" fill="url(#nl1)"/><path d="M40 14L22 40h14l-4 18 22-24H40L42 14z" fill="white"/><circle cx="52" cy="52" r="12" fill="url(#nl2)"/><path d="M47 52l3 3 5-6" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="nl1" x1="0" y1="0" x2="72" y2="72"><stop offset="0%" stop-color="#6366F1"/><stop offset="100%" stop-color="#8B5CF6"/></linearGradient><linearGradient id="nl2" x1="40" y1="40" x2="64" y2="64"><stop offset="0%" stop-color="#10B981"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs></svg>';
+
 // ── STATE ──
 var U = null, P = null;
 var QS = [], QI = 0, SC = 0, DN = false, tmr = null, TL = 600, T0 = null, EX = null;
 var isGenQuiz = false;
 var chatCtx = null, chatMsgs = [], aiLeft = 3, sending = false;
 var tt, tto;
+
 // ── HELPERS ──
 function toast(m, t) {
   var ti = document.getElementById('t-inner');
   ti.textContent = m;
-  ti.style.background = t === 'ok' ? 'rgba(16,185,129,.15)' : t === 'err' ?
-'rgba(244,63,94,.15)' : 'rgba(13,17,23,.97)';
-  ti.style.borderColor = t === 'ok' ? 'rgba(16,185,129,.3)' : t === 'err' ? 'rgba(244,63,94,.3)'
-: 'rgba(255,255,255,.1)';
+  ti.style.background = t === 'ok' ? 'rgba(16,185,129,.15)' : t === 'err' ? 'rgba(244,63,94,.15)' : 'rgba(13,17,23,.97)';
+  ti.style.borderColor = t === 'ok' ? 'rgba(16,185,129,.3)' : t === 'err' ? 'rgba(244,63,94,.3)' : 'rgba(255,255,255,.1)';
   var el = document.getElementById('toast');
   el.classList.add('on');
   clearTimeout(tto);
@@ -81,9 +73,7 @@ function go(id) {
   if (id === 'pf') renderPF();
 }
 function avUrl(seed) {
-  return 'https://api.dicebear.com/7.x/shapes/svg?seed=' + encodeURIComponent(hashSeed(seed ||
-'default')) +
-'&backgroundColor=6366f1,8b5cf6,10b981,f59e0b,22d3ee&backgroundType=gradientLinear';
+  return 'https://api.dicebear.com/7.x/shapes/svg?seed=' + encodeURIComponent(hashSeed(seed || 'default')) + '&backgroundColor=6366f1,8b5cf6,10b981,f59e0b,22d3ee&backgroundType=gradientLinear';
 }
 function getLvl(xp) {
   for (var i = LEVELS.length - 1; i >= 0; i--) {
@@ -103,6 +93,7 @@ function updLvlUI(xp) {
   var xf = document.getElementById('xp-fill'); if (xf) xf.style.width = pct + '%';
   var hx = document.getElementById('hxp'); if (hx) hx.textContent = xp;
 }
+
 // ── ONBOARDING SLIDES ──
 var obIdx = 0;
 function obGoNext() {
@@ -116,30 +107,22 @@ function obGoNext() {
 }
 function obSkip() { go('lg'); }
 
-// ── API — all three helpers now use getH() so requests are authenticated ──
+// ── API ──
 async function api(t, q) {
   try {
-    var r = await fetch(SB + '/rest/v1/' + t + (q || ''), { headers: getH() });
+    var r = await fetch(SB + '/rest/v1/' + t + (q || ''), { headers: H });
     return r.ok ? await r.json() : [];
   } catch (e) { return []; }
 }
 async function ins(t, d) {
   try {
-    var r = await fetch(SB + '/rest/v1/' + t, {
-      method: 'POST',
-      headers: Object.assign({}, getH(), { 'Prefer': 'return=representation' }),
-      body: JSON.stringify(d)
-    });
+    var r = await fetch(SB + '/rest/v1/' + t, { method: 'POST', headers: Object.assign({}, H, { 'Prefer': 'return=representation' }), body: JSON.stringify(d) });
     return r.ok ? await r.json() : null;
   } catch (e) { return null; }
 }
 async function patch(t, q, d) {
   try {
-    var r = await fetch(SB + '/rest/v1/' + t + q, {
-      method: 'PATCH',
-      headers: Object.assign({}, getH(), { 'Prefer': 'return=representation' }),
-      body: JSON.stringify(d)
-    });
+    var r = await fetch(SB + '/rest/v1/' + t + q, { method: 'PATCH', headers: Object.assign({}, H, { 'Prefer': 'return=representation' }), body: JSON.stringify(d) });
     return r.ok ? await r.json() : null;
   } catch (e) { return null; }
 }
@@ -165,7 +148,7 @@ async function init() {
     var ctrl = new AbortController();
     var tid = setTimeout(function () { ctrl.abort(); }, 6000);
     var res = await fetch(SB + '/auth/v1/user', {
-      headers: Object.assign({}, getH(), { 'Authorization': 'Bearer ' + token }),
+      headers: Object.assign({}, H, { 'Authorization': 'Bearer ' + token }),
       signal: ctrl.signal
     });
     clearTimeout(tid);
@@ -185,6 +168,7 @@ async function init() {
     go('lg');
   }
 }
+
 // ── MCQ GENERATOR ──
 var GEN_URL = 'https://xkijsokwttuypxcgppbe.supabase.co/functions/v1/generate-mcq';
 var genResults = [];
@@ -327,8 +311,7 @@ function onPDFSelected(inp) {
     var s = document.createElement('script');
     s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
     s.onload = function () {
-      window.pdfjsLib.GlobalWorkerOptions.workerSrc =
-'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
       extractPDFText(file);
     };
     document.head.appendChild(s);
@@ -469,6 +452,7 @@ function startGenQuiz() {
   isGenQuiz = true;
   renderQZ(); rQ(); sTmr();
 }
+
 // ── THEME ──
 function initTheme() {
   var saved = localStorage.getItem('mm_theme');
@@ -482,12 +466,14 @@ function toggleTheme() {
   });
 }
 initTheme();
+
 // ── BOOT ──
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function () { setTimeout(init, 100); });
 } else {
   setTimeout(init, 100);
 }
+
 // ── LOGIN ──
 function stab(t) {
   document.querySelectorAll('.atab').forEach(function (tab, i) { tab.classList.toggle('on', ['social', 'email'][i] === t); });
@@ -504,7 +490,7 @@ async function signEmail() {
   if (!em || !pw) { toast('Enter email and password', 'err'); return; }
   toast('Signing in...');
   try {
-    var r = await fetch(SB + '/auth/v1/token?grant_type=password', { method: 'POST', headers: getH(), body: JSON.stringify({ email: em, password: pw }) });
+    var r = await fetch(SB + '/auth/v1/token?grant_type=password', { method: 'POST', headers: H, body: JSON.stringify({ email: em, password: pw }) });
     var d = await r.json();
     if (d.access_token) { localStorage.setItem('mm_tk', d.access_token); init(); }
     else toast('Wrong email or password', 'err');
@@ -517,7 +503,7 @@ async function signUpEmail() {
   if (pw.length < 6) { toast('Password must be at least 6 characters', 'err'); return; }
   toast('Creating your account...');
   try {
-    var r = await fetch(SB + '/auth/v1/signup', { method: 'POST', headers: getH(), body: JSON.stringify({ email: em, password: pw }) });
+    var r = await fetch(SB + '/auth/v1/signup', { method: 'POST', headers: H, body: JSON.stringify({ email: em, password: pw }) });
     var d = await r.json();
     if (d.access_token) { localStorage.setItem('mm_tk', d.access_token); init(); }
     else if (d.id) toast('Check your email for a confirmation link!', 'ok');
@@ -529,24 +515,18 @@ function pEx(el, ex) {
   document.querySelectorAll('.exam-card').forEach(function (e) { e.classList.remove('sel'); });
   el.classList.add('sel'); EX = ex;
 }
-
-// ── ONBOARDING SAVE — now uses ins() which automatically sends user JWT ──
 async function fOb() {
   var nm = document.getElementById('obn').value.trim();
   if (!nm) { toast('Enter your name', 'err'); return; }
   if (nm.length > 50) { toast('Name must be 50 characters or less', 'err'); return; }
   if (!EX) { toast('Select your exam', 'err'); return; }
+  var tk = localStorage.getItem('mm_tk');
   var trialEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
   try {
-    await ins('users', {
-      id: U.id,
-      email: U.email,
-      name: nm,
-      exam_target: EX,
-      plan: 'free',
-      trial_ends_at: trialEnd,
-      xp: 0,
-      level: 1
+    await fetch(SB + '/rest/v1/users', {
+      method: 'POST',
+      headers: Object.assign({}, H, { 'Authorization': 'Bearer ' + tk, 'Prefer': 'return=representation' }),
+      body: JSON.stringify({ id: U.id, email: U.email, name: nm, exam_target: EX, plan: 'free', trial_ends_at: trialEnd, xp: 0, level: 1 })
     });
   } catch (e) {}
   P = { id: U.id, email: U.email, name: nm, exam_target: EX, plan: 'free', xp: 0, level: 1, trial_ends_at: trialEnd };
@@ -564,6 +544,7 @@ async function startTrial() {
   toast('🎉 7-day Pro trial activated!', 'ok');
   setTimeout(function () { renderHM(); }, 800);
 }
+
 // ── HOME ──
 async function renderHM() {
   go('hm');
@@ -658,6 +639,7 @@ async function renderHM() {
     var hp = document.getElementById('hpill'); if (hp) hp.textContent = qz[0].exam_target;
   });
 }
+
 // ── QUIZ ──
 async function bQz() {
   var b = document.getElementById('bsq'); if (!b) return;
@@ -769,6 +751,7 @@ function sTmr() {
     if (TL <= 60 && te) te.style.color = '#F43F5E';
   }, 1000);
 }
+
 // ── RESULTS ──
 function renderRS(score, acc, sec, xpGained, beatTxt, wasGen) {
   var seed = U ? U.id : 'user';
@@ -801,6 +784,7 @@ function renderRS(score, acc, sec, xpGained, beatTxt, wasGen) {
     + '<button class="btn btn-g" onclick="' + (wasGen ? 'renderMG()' : 'renderHM()') + '" style="color:var(--t3)">' + (wasGen ? '← Back to Generator' : 'Back to Home') + '</button>'
     + '</div>';
 }
+
 // ── LEADERBOARD ──
 async function renderLB() {
   var el = document.getElementById('lb');
@@ -862,6 +846,7 @@ async function renderLB() {
     }).join('');
   }
 }
+
 // ── PYQ ──
 var pyqExam = 'UPSC';
 var PYQ_EXAMS = [
@@ -965,6 +950,7 @@ function renderPYQQuiz(exam, year) {
     + '<div class="q-foot"><button class="btn btn-p" id="bnx" onclick="nQ()" disabled>Select an answer</button></div>';
   go('qz');
 }
+
 // ── PROFILE ──
 async function renderPF() {
   var seed = U ? U.id : 'user';
@@ -1067,12 +1053,14 @@ async function renderPF() {
     }).join('');
   });
 }
+
 // ── SHARE ──
 function shareScore(score, acc) {
   var txt = '⚡ Micro Mock\n\nScored ' + score + '/10 (' + acc + '%) today!\n\nPreparing daily for govt exam 💪\n\nhttps://zeet3283.github.io/Micro-Mock/';
   if (navigator.share) navigator.share({ title: 'My Score', text: txt });
   else { navigator.clipboard.writeText(txt).catch(function () {}); toast('Score copied! Share anywhere 📤', 'ok'); }
 }
+
 // ── CONFETTI ──
 function confetti() {
   var cw = document.getElementById('conf-wrap'); if (!cw) return;
@@ -1085,6 +1073,7 @@ function confetti() {
   }
   setTimeout(function () { if (cw) cw.innerHTML = ''; }, 6000);
 }
+
 // ── AI CHATBOT ──
 function updateAiCount() {
   var cnt = document.getElementById('ai-count');
@@ -1160,12 +1149,14 @@ async function sendMsg() {
     if (sendBtn2) sendBtn2.disabled = false;
   }
 }
+
 // SECURITY: addMsg uses DOM methods — no innerHTML on user/AI content
 function addMsg(role, txt) {
   var msgs = document.getElementById('chat-msgs');
   if (!msgs) return;
   var div = document.createElement('div');
   div.className = 'msg ' + role;
+
   var avDiv = document.createElement('div');
   avDiv.className = 'msg-av ' + role;
   if (role === 'ai') {
@@ -1176,6 +1167,7 @@ function addMsg(role, txt) {
     img.alt = '';
     avDiv.appendChild(img);
   }
+
   var bubble = document.createElement('div');
   bubble.className = 'msg-bubble';
   // Split on newlines and insert text nodes + <br> — never innerHTML
@@ -1183,11 +1175,13 @@ function addMsg(role, txt) {
     bubble.appendChild(document.createTextNode(line));
     if (i < arr.length - 1) bubble.appendChild(document.createElement('br'));
   });
+
   div.appendChild(avDiv);
   div.appendChild(bubble);
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
 }
+
 function addTyping(id) {
   var msgs = document.getElementById('chat-msgs'); if (!msgs) return;
   var div = document.createElement('div');
