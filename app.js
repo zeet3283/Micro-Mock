@@ -1,7 +1,21 @@
 // ── CONFIG ──
 var SB = 'https://xkijsokwttuypxcgppbe.supabase.co';
-var KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhraWpzb2t3dHR1eXB4Y2dwcGJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODE4NzcsImV4cCI6MjA4ODY1Nzg3N30.GVnoXPvWaPtStQpqRV5ozUwjb-JJhhl1Iba660Z8aa8';
-var H = { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json' };
+var KEY =
+'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhraWpzb2t3dHR1eXB4Y2dwcGJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODE4NzcsImV4cCI6MjA4ODY1Nzg3N30.GVnoXPvWaPtStQpqRV5ozUwjbJJhhl1Iba660Z8aa8';
+
+// ── SECURITY: dynamic auth header ──
+// Always reads the current JWT from localStorage so auth.uid() works in RLS.
+// Falls back to the anon key when no token exists (pre-login calls).
+function getH(extra) {
+  var tk = localStorage.getItem('mm_tk');
+  var h = {
+    'apikey': KEY,
+    'Authorization': 'Bearer ' + (tk || KEY),
+    'Content-Type': 'application/json'
+  };
+  return extra ? Object.assign({}, h, extra) : h;
+}
+
 var EDGE_URL = 'https://xkijsokwttuypxcgppbe.supabase.co/functions/v1/Chat';
 
 // ── SECURITY: HTML escape ──
@@ -42,7 +56,7 @@ var QUOTES = [
 ];
 var NAV_SVG = {
   home: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
-  ranks: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M8 21h8M12 17v4M17 7l-5-5-5 5v10h10z"/><path d="M6 7H2v10h4M22 7h-4v10h4"/></svg>',
+  ranks: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M8 21h8M12 17v4M17 7l-5-5-5 5v10h10z"/><path d="M6 7H2v10h4M22 7h4v10h4"/></svg>',
   profile: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
 };
 var LOGO_SVG = '<svg width="26" height="26" viewBox="0 0 72 72" fill="none"><rect width="72" height="72" rx="20" fill="url(#nl1)"/><path d="M40 14L22 40h14l-4 18 22-24H40L42 14z" fill="white"/><circle cx="52" cy="52" r="12" fill="url(#nl2)"/><path d="M47 52l3 3 5-6" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="nl1" x1="0" y1="0" x2="72" y2="72"><stop offset="0%" stop-color="#6366F1"/><stop offset="100%" stop-color="#8B5CF6"/></linearGradient><linearGradient id="nl2" x1="40" y1="40" x2="64" y2="64"><stop offset="0%" stop-color="#10B981"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs></svg>';
@@ -73,7 +87,8 @@ function go(id) {
   if (id === 'pf') renderPF();
 }
 function avUrl(seed) {
-  return 'https://api.dicebear.com/7.x/shapes/svg?seed=' + encodeURIComponent(hashSeed(seed || 'default')) + '&backgroundColor=6366f1,8b5cf6,10b981,f59e0b,22d3ee&backgroundType=gradientLinear';
+  return 'https://api.dicebear.com/7.x/shapes/svg?seed=' + encodeURIComponent(hashSeed(seed || 'default')) +
+    '&backgroundColor=6366f1,8b5cf6,10b981,f59e0b,22d3ee&backgroundType=gradientLinear';
 }
 function getLvl(xp) {
   for (var i = LEVELS.length - 1; i >= 0; i--) {
@@ -108,21 +123,31 @@ function obGoNext() {
 function obSkip() { go('lg'); }
 
 // ── API ──
+// All three helpers call getH() at request time, so the current JWT
+// is always included. This makes auth.uid() work correctly in RLS.
 async function api(t, q) {
   try {
-    var r = await fetch(SB + '/rest/v1/' + t + (q || ''), { headers: H });
+    var r = await fetch(SB + '/rest/v1/' + t + (q || ''), { headers: getH() });
     return r.ok ? await r.json() : [];
   } catch (e) { return []; }
 }
 async function ins(t, d) {
   try {
-    var r = await fetch(SB + '/rest/v1/' + t, { method: 'POST', headers: Object.assign({}, H, { 'Prefer': 'return=representation' }), body: JSON.stringify(d) });
+    var r = await fetch(SB + '/rest/v1/' + t, {
+      method: 'POST',
+      headers: getH({ 'Prefer': 'return=representation' }),
+      body: JSON.stringify(d)
+    });
     return r.ok ? await r.json() : null;
   } catch (e) { return null; }
 }
 async function patch(t, q, d) {
   try {
-    var r = await fetch(SB + '/rest/v1/' + t + q, { method: 'PATCH', headers: Object.assign({}, H, { 'Prefer': 'return=representation' }), body: JSON.stringify(d) });
+    var r = await fetch(SB + '/rest/v1/' + t + q, {
+      method: 'PATCH',
+      headers: getH({ 'Prefer': 'return=representation' }),
+      body: JSON.stringify(d)
+    });
     return r.ok ? await r.json() : null;
   } catch (e) { return null; }
 }
@@ -147,8 +172,9 @@ async function init() {
     }
     var ctrl = new AbortController();
     var tid = setTimeout(function () { ctrl.abort(); }, 6000);
+    // getH() reads the token that was just confirmed to be in localStorage
     var res = await fetch(SB + '/auth/v1/user', {
-      headers: Object.assign({}, H, { 'Authorization': 'Bearer ' + token }),
+      headers: getH(),
       signal: ctrl.signal
     });
     clearTimeout(tid);
@@ -490,7 +516,12 @@ async function signEmail() {
   if (!em || !pw) { toast('Enter email and password', 'err'); return; }
   toast('Signing in...');
   try {
-    var r = await fetch(SB + '/auth/v1/token?grant_type=password', { method: 'POST', headers: H, body: JSON.stringify({ email: em, password: pw }) });
+    // getH() falls back to anon key here since no token exists yet — correct
+    var r = await fetch(SB + '/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      headers: getH(),
+      body: JSON.stringify({ email: em, password: pw })
+    });
     var d = await r.json();
     if (d.access_token) { localStorage.setItem('mm_tk', d.access_token); init(); }
     else toast('Wrong email or password', 'err');
@@ -503,7 +534,12 @@ async function signUpEmail() {
   if (pw.length < 6) { toast('Password must be at least 6 characters', 'err'); return; }
   toast('Creating your account...');
   try {
-    var r = await fetch(SB + '/auth/v1/signup', { method: 'POST', headers: H, body: JSON.stringify({ email: em, password: pw }) });
+    // getH() falls back to anon key here since no token exists yet — correct
+    var r = await fetch(SB + '/auth/v1/signup', {
+      method: 'POST',
+      headers: getH(),
+      body: JSON.stringify({ email: em, password: pw })
+    });
     var d = await r.json();
     if (d.access_token) { localStorage.setItem('mm_tk', d.access_token); init(); }
     else if (d.id) toast('Check your email for a confirmation link!', 'ok');
@@ -520,12 +556,12 @@ async function fOb() {
   if (!nm) { toast('Enter your name', 'err'); return; }
   if (nm.length > 50) { toast('Name must be 50 characters or less', 'err'); return; }
   if (!EX) { toast('Select your exam', 'err'); return; }
-  var tk = localStorage.getItem('mm_tk');
   var trialEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
   try {
+    // getH() includes the user's JWT here since they are logged in
     await fetch(SB + '/rest/v1/users', {
       method: 'POST',
-      headers: Object.assign({}, H, { 'Authorization': 'Bearer ' + tk, 'Prefer': 'return=representation' }),
+      headers: getH({ 'Prefer': 'return=representation' }),
       body: JSON.stringify({ id: U.id, email: U.email, name: nm, exam_target: EX, plan: 'free', trial_ends_at: trialEnd, xp: 0, level: 1 })
     });
   } catch (e) {}
@@ -686,7 +722,7 @@ function rQ() {
   ['A', 'B', 'C', 'D'].forEach(function (lt, i) {
     var v = [q.option_a, q.option_b, q.option_c, q.option_d];
     var b = document.createElement('button'); b.className = 'opt';
-    // Use textContent for opt-l, textContent for option text — no innerHTML on user data
+    // Use textContent for opt-l and option text — no innerHTML on user data
     var lDiv = document.createElement('div'); lDiv.className = 'opt-l'; lDiv.textContent = lt;
     var span = document.createElement('span'); span.textContent = v[i] || '';
     b.appendChild(lDiv); b.appendChild(span);
@@ -1156,7 +1192,6 @@ function addMsg(role, txt) {
   if (!msgs) return;
   var div = document.createElement('div');
   div.className = 'msg ' + role;
-
   var avDiv = document.createElement('div');
   avDiv.className = 'msg-av ' + role;
   if (role === 'ai') {
@@ -1167,7 +1202,6 @@ function addMsg(role, txt) {
     img.alt = '';
     avDiv.appendChild(img);
   }
-
   var bubble = document.createElement('div');
   bubble.className = 'msg-bubble';
   // Split on newlines and insert text nodes + <br> — never innerHTML
@@ -1175,13 +1209,11 @@ function addMsg(role, txt) {
     bubble.appendChild(document.createTextNode(line));
     if (i < arr.length - 1) bubble.appendChild(document.createElement('br'));
   });
-
   div.appendChild(avDiv);
   div.appendChild(bubble);
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
 }
-
 function addTyping(id) {
   var msgs = document.getElementById('chat-msgs'); if (!msgs) return;
   var div = document.createElement('div');
