@@ -158,8 +158,8 @@ async function init() {
     var code = new URLSearchParams(location.search).get('code');
     if (code) {
      history.replaceState(null, '', location.pathname);
-     var verifier = sessionStorage.getItem('pkce_verifier');
-     sessionStorage.removeItem('pkce_verifier');
+     var verifier = sessionStorage.getItem('pkce_verifier') || localStorage.getItem('pkce_verifier');
+     localStorage.removeItem('pkce_verifier');
      var res = await fetch(SB + '/auth/v1/token?grant_type=pkce', {
       method: 'POST',
       headers: getH(),
