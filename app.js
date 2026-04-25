@@ -155,15 +155,29 @@ async function patch(t, q, d) {
 // ── AUTH ──
 async function init() {
   try {
-    var hash = location.hash;
-    if (hash && hash.includes('access_token')) {
-      var params = new URLSearchParams(hash.slice(1));
-      var tk = params.get('access_token');
-      if (tk) {
-        localStorage.setItem('mm_tk', tk);
-        history.replaceState(null, '', location.pathname);
-      }
-    }
+    var code = new URLSearchParams(location.search).get('code');
+    if (code) {
+     history.replaceState(null, '', location.pathname);
+     var verifier = sessionStorage.getItem('pkce_verifier');
+     sessionStorage.removeItem('pkce_verifier');
+     var res = await fetch(SB + '/auth/v1/token?grant_type=pkce', {
+      method: 'POST',
+      headers: getH(),
+      body: JSON.stringify({ auth_code: code, code_verifier: verifier })
+     });
+     var d = await res.json();
+     if (d.access_token) localStorage.setItem('mm_tk', d.access_token);
+     else { go('lg'); return; }
+   }
+   var hash = location.hash;
+   if (hash && hash.includes('access_token')) {
+     var params = new URLSearchParams(hash.slice(1));
+     var tk = params.get('access_token');
+     if (tk) {
+      localStorage.setItem('mm_tk', tk);
+      history.replaceState(null, '', location.pathname);
+     }
+   }
     var token = localStorage.getItem('mm_tk');
     if (!token) {
       var seen = localStorage.getItem('mm_seen');
@@ -507,8 +521,18 @@ function stab(t) {
   document.getElementById('tab-' + t).classList.add('on');
 }
 function signGoogle() {
-  var redirectTo = location.href.split('#')[0];
-  location.href = SB + '/auth/v1/authorize?provider=google&flow_type=implicit&redirect_to=' + encodeURIComponent(redirectTo);
+  var verifier = crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
+  sessionStorage.setItem('pkce_verifier', verifier);
+  var encoder = new TextEncoder();
+  crypto.subtle.digest('SHA-256', encoder.encode(verifier)).then(function(buf) {
+    var challenge = btoa(String.fromCharCode(...new Uint8Array(buf)))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    var redirectTo = location.href.split('#')[0].split('?')[0];
+    location.href = SB + '/auth/v1/authorize?provider=google&redirect_to='
+      + encodeURIComponent(redirectTo)
+      + '&code_challenge=' + challenge
+      + '&code_challenge_method=s256';
+  });
 }
 async function signEmail() {
   var em = document.getElementById('em-inp').value.trim();
