@@ -521,11 +521,15 @@ function stab(t) {
   document.getElementById('tab-' + t).classList.add('on');
 }
 function signGoogle() {
-  var verifier = crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
+  var array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  var verifier = btoa(String.fromCharCode.apply(null, array))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+  localStorage.setItem('pkce_verifier', verifier);
   sessionStorage.setItem('pkce_verifier', verifier);
   var encoder = new TextEncoder();
   crypto.subtle.digest('SHA-256', encoder.encode(verifier)).then(function(buf) {
-    var challenge = btoa(String.fromCharCode(...new Uint8Array(buf)))
+    var challenge = btoa(String.fromCharCode.apply(null, new Uint8Array(buf)))
       .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
     var redirectTo = location.href.split('#')[0].split('?')[0];
     location.href = SB + '/auth/v1/authorize?provider=google&redirect_to='
