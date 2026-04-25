@@ -508,7 +508,7 @@ function stab(t) {
 }
 function signGoogle() {
   var redirectTo = location.href.split('#')[0];
-  location.href = SB + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(redirectTo);
+  location.href = SB + '/auth/v1/authorize?provider=google&flow_type=implicit&redirect_to=' + encodeURIComponent(redirectTo);
 }
 async function signEmail() {
   var em = document.getElementById('em-inp').value.trim();
