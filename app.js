@@ -3,13 +3,17 @@ var SB = 'https://xkijsokwttuypxcgppbe.supabase.co';
 var KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhraWpzb2t3dHR1eXB4Y2dwcGJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODE4NzcsImV4cCI6MjA4ODY1Nzg3N30.GVnoXPvWaPtStQpqRV5ozUwjb-JJhhl1Iba660Z8aa8';
 var EDGE_URL = 'https://xkijsokwttuypxcgppbe.supabase.co/functions/v1/chat';
 
-// ── FIX #1 — Dynamic header builder ──
-// Reads the stored user token at call time; falls back to anon KEY if absent.
+// ── FIX #1: dynamic auth header ──
+// Reads live JWT at call time so auth.uid() works in RLS.
+// Falls back to anon key for pre-login calls.
 function getH(extra) {
-  var tk = localStorage.getItem('mm_tk') || KEY;
-  var h = { 'apikey': KEY, 'Authorization': 'Bearer ' + tk, 'Content-Type': 'application/json' };
-  if (extra) Object.assign(h, extra);
-  return h;
+  var tk = localStorage.getItem('mm_tk');
+  var h = {
+    'apikey': KEY,
+    'Authorization': 'Bearer ' + (tk || KEY),
+    'Content-Type': 'application/json'
+  };
+  return extra ? Object.assign({}, h, extra) : h;
 }
 
 // ── CONSTANTS ──
@@ -29,8 +33,8 @@ var QUOTES = [
   ['Believe you can and you\'re halfway there.', 'Theodore Roosevelt']
 ];
 var NAV_SVG = {
-  home:    '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
-  ranks:   '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M8 21h8M12 17v4M17 7l-5-5-5 5v10h10z"/><path d="M6 7H2v10h4M22 7h-4v10h4"/></svg>',
+  home: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+  ranks: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M8 21h8M12 17v4M17 7l-5-5-5 5v10h10z"/><path d="M6 7H2v10h4M22 7h-4v10h4"/></svg>',
   profile: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
 };
 var LOGO_SVG = '<svg width="26" height="26" viewBox="0 0 72 72" fill="none"><rect width="72" height="72" rx="20" fill="url(#nl1)"/><path d="M40 14L22 40h14l-4 18 22-24H40L42 14z" fill="white"/><circle cx="52" cy="52" r="12" fill="url(#nl2)"/><path d="M47 52l3 3 5-6" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="nl1" x1="0" y1="0" x2="72" y2="72"><stop offset="0%" stop-color="#6366F1"/><stop offset="100%" stop-color="#8B5CF6"/></linearGradient><linearGradient id="nl2" x1="40" y1="40" x2="64" y2="64"><stop offset="0%" stop-color="#10B981"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs></svg>';
@@ -45,15 +49,15 @@ var tt, tto;
 function toast(m, t) {
   var ti = document.getElementById('t-inner');
   ti.textContent = m;
-  ti.style.background   = t === 'ok'  ? 'rgba(16,185,129,.15)' : t === 'err' ? 'rgba(244,63,94,.15)'  : 'rgba(13,17,23,.97)';
-  ti.style.borderColor  = t === 'ok'  ? 'rgba(16,185,129,.3)'  : t === 'err' ? 'rgba(244,63,94,.3)'   : 'rgba(255,255,255,.1)';
+  ti.style.background = t === 'ok' ? 'rgba(16,185,129,.15)' : t === 'err' ? 'rgba(244,63,94,.15)' : 'rgba(13,17,23,.97)';
+  ti.style.borderColor = t === 'ok' ? 'rgba(16,185,129,.3)' : t === 'err' ? 'rgba(244,63,94,.3)' : 'rgba(255,255,255,.1)';
   var el = document.getElementById('toast');
   el.classList.add('on');
   clearTimeout(tto);
   tto = setTimeout(function () { el.classList.remove('on'); }, 2500);
 }
 
-// ── STRUCTURAL FIX — single go() definition ──
+// Single definition of go()
 function go(id) {
   document.querySelectorAll('.pg').forEach(function (p) { p.classList.remove('on'); });
   var target = document.getElementById(id);
@@ -65,10 +69,16 @@ function go(id) {
 function avUrl(seed) {
   return 'https://api.dicebear.com/7.x/shapes/svg?seed=' + encodeURIComponent(seed || 'default') + '&backgroundColor=6366f1,8b5cf6,10b981,f59e0b,22d3ee&backgroundType=gradientLinear';
 }
-function setImgSrc(id, seed) { var el = document.getElementById(id); if (el) el.src = avUrl(seed); }
+
+function setImgSrc(id, seed) {
+  var el = document.getElementById(id);
+  if (el) el.src = avUrl(seed);
+}
 
 function getLvl(xp) {
-  for (var i = LEVELS.length - 1; i >= 0; i--) { if (xp >= LEVELS[i].min) return LEVELS[i]; }
+  for (var i = LEVELS.length - 1; i >= 0; i--) {
+    if (xp >= LEVELS[i].min) return LEVELS[i];
+  }
   return LEVELS[0];
 }
 
@@ -79,100 +89,78 @@ function updLvlUI(xp) {
   var pct = nxt ? Math.round((xp - l.min) / (nxt.min - l.min) * 100) : 100;
   var nxtXp = nxt ? nxt.min : l.min;
   ['level-icon', 'pf-level-icon'].forEach(function (id) { var e = document.getElementById(id); if (e) e.textContent = l.i; });
-  ['level-nm',   'pf-level-nm'  ].forEach(function (id) { var e = document.getElementById(id); if (e) e.textContent = l.n; });
+  ['level-nm', 'pf-level-nm'].forEach(function (id) { var e = document.getElementById(id); if (e) e.textContent = l.n; });
   var xc = document.getElementById('xp-count'); if (xc) xc.textContent = xp + ' / ' + nxtXp + ' XP';
-  var xf = document.getElementById('xp-fill');  if (xf) xf.style.width = pct + '%';
-  var hx = document.getElementById('hxp');      if (hx) hx.textContent = xp;
+  var xf = document.getElementById('xp-fill'); if (xf) xf.style.width = pct + '%';
+  var hx = document.getElementById('hxp'); if (hx) hx.textContent = xp;
 }
 
-// ── API ── (all H → getH())
+// ── API helpers — all use getH() so RLS auth.uid() works ──
 async function api(t, q) {
-  try { var r = await fetch(SB + '/rest/v1/' + t + (q || ''), { headers: getH() }); return r.ok ? await r.json() : []; }
-  catch (e) { return []; }
+  try {
+    var r = await fetch(SB + '/rest/v1/' + t + (q || ''), { headers: getH() });
+    return r.ok ? await r.json() : [];
+  } catch (e) { return []; }
 }
 async function ins(t, d) {
-  try { var r = await fetch(SB + '/rest/v1/' + t, { method: 'POST', headers: getH({ 'Prefer': 'return=representation' }), body: JSON.stringify(d) }); return r.ok ? await r.json() : null; }
-  catch (e) { return null; }
+  try {
+    var r = await fetch(SB + '/rest/v1/' + t, { method: 'POST', headers: getH({ 'Prefer': 'return=representation' }), body: JSON.stringify(d) });
+    return r.ok ? await r.json() : null;
+  } catch (e) { return null; }
 }
 async function patch(t, q, d) {
-  try { var r = await fetch(SB + '/rest/v1/' + t + q, { method: 'PATCH', headers: getH({ 'Prefer': 'return=representation' }), body: JSON.stringify(d) }); return r.ok ? await r.json() : null; }
-  catch (e) { return null; }
+  try {
+    var r = await fetch(SB + '/rest/v1/' + t + q, { method: 'PATCH', headers: getH({ 'Prefer': 'return=representation' }), body: JSON.stringify(d) });
+    return r.ok ? await r.json() : null;
+  } catch (e) { return null; }
 }
 
 // ── AUTH ──
-
-// ── FIX #3 — PKCE Google login ──
-async function signGoogle() {
-  // 1. Generate random 32-byte verifier, base64url-encode it
-  var arr = new Uint8Array(32);
-  crypto.getRandomValues(arr);
-  var verifier = btoa(String.fromCharCode.apply(null, arr))
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-
-  // 2. Store verifier in both storages (belt-and-suspenders across redirects)
-  localStorage.setItem('pkce_verifier', verifier);
-  sessionStorage.setItem('pkce_verifier', verifier);
-
-  // 3. SHA-256 hash → base64url challenge
-  var enc = new TextEncoder();
-  var hashBuf = await crypto.subtle.digest('SHA-256', enc.encode(verifier));
-  var challenge = btoa(String.fromCharCode.apply(null, new Uint8Array(hashBuf)))
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-
-  // 4. Redirect to Supabase OAuth with PKCE params
-  var redirectUrl = location.origin + location.pathname;
-  location.href = SB + '/auth/v1/authorize?provider=google'
-    + '&redirect_to=' + encodeURIComponent(redirectUrl)
-    + '&code_challenge=' + challenge
-    + '&code_challenge_method=s256';
-}
-
 async function init() {
   try {
-    // ── FIX #3 — PKCE code exchange (runs before hash/token check) ──
-    var urlParams = new URLSearchParams(location.search);
-    var code = urlParams.get('code');
+    // FIX #3: PKCE — exchange ?code= returned by Supabase for a real token
+    var code = new URLSearchParams(location.search).get('code');
     if (code) {
-      var verifier = localStorage.getItem('pkce_verifier') || sessionStorage.getItem('pkce_verifier');
-      if (verifier) {
-        // Clean URL immediately so reloads don't re-exchange
-        history.replaceState(null, '', location.pathname);
-        try {
-          var pkceRes = await fetch(SB + '/auth/v1/token?grant_type=pkce', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'apikey': KEY },
-            body: JSON.stringify({ auth_code: code, code_verifier: verifier })
-          });
-          var pkceData = await pkceRes.json();
-          localStorage.removeItem('pkce_verifier');
-          sessionStorage.removeItem('pkce_verifier');
-          if (pkceData.access_token) {
-            localStorage.setItem('mm_tk', pkceData.access_token);
-          }
-        } catch (pkceErr) {
-          console.error('PKCE exchange failed:', pkceErr);
-        }
+      history.replaceState(null, '', location.pathname);
+      var verifier = sessionStorage.getItem('pkce_verifier') || localStorage.getItem('pkce_verifier');
+      sessionStorage.removeItem('pkce_verifier');
+      localStorage.removeItem('pkce_verifier');
+      var pkceRes = await fetch(SB + '/auth/v1/token?grant_type=pkce', {
+        method: 'POST',
+        headers: getH(),
+        body: JSON.stringify({ auth_code: code, code_verifier: verifier })
+      });
+      var pkceData = await pkceRes.json();
+      if (pkceData.access_token) {
+        localStorage.setItem('mm_tk', pkceData.access_token);
+      } else {
+        go('lg');
+        return;
       }
     }
 
-    // Handle legacy implicit-flow token in URL hash (backwards compat)
+    // Implicit flow fallback (hash-based tokens)
     var hash = location.hash;
     if (hash && hash.includes('access_token')) {
       var params = new URLSearchParams(hash.slice(1));
       var tk = params.get('access_token');
-      if (tk) { localStorage.setItem('mm_tk', tk); history.replaceState(null, '', location.pathname); }
+      if (tk) {
+        localStorage.setItem('mm_tk', tk);
+        history.replaceState(null, '', location.pathname);
+      }
     }
 
     var token = localStorage.getItem('mm_tk');
     if (!token) { go('lg'); return; }
 
-    // Verify token with 6s timeout
+    // Verify token — getH() reads token just saved above
     var ctrl = new AbortController();
     var tid = setTimeout(function () { ctrl.abort(); }, 6000);
     var res = await fetch(SB + '/auth/v1/user', { headers: getH(), signal: ctrl.signal });
     clearTimeout(tid);
 
     if (!res.ok) { localStorage.removeItem('mm_tk'); go('lg'); return; }
+
     U = await res.json();
 
     var profileArr = await api('users', '?id=eq.' + U.id + '&limit=1');
@@ -190,17 +178,38 @@ async function init() {
   }
 }
 
-// ── STRUCTURAL FIX — single boot block ──
+// ── BOOT — single boot block ──
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', function () { setTimeout(init, 50); });
+  document.addEventListener('DOMContentLoaded', function () { setTimeout(init, 100); });
 } else {
-  setTimeout(init, 50);
+  setTimeout(init, 100);
 }
 
+// ── LOGIN ──
 function stab(t) {
   document.querySelectorAll('.atab').forEach(function (tab, i) { tab.classList.toggle('on', ['social', 'email', 'phone'][i] === t); });
   document.querySelectorAll('.aform').forEach(function (f) { f.classList.remove('on'); });
   document.getElementById('tab-' + t).classList.add('on');
+}
+
+// FIX #3: PKCE-compliant Google sign-in
+function signGoogle() {
+  var array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  var verifier = btoa(String.fromCharCode.apply(null, array))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+  localStorage.setItem('pkce_verifier', verifier);
+  sessionStorage.setItem('pkce_verifier', verifier);
+  var encoder = new TextEncoder();
+  crypto.subtle.digest('SHA-256', encoder.encode(verifier)).then(function (buf) {
+    var challenge = btoa(String.fromCharCode.apply(null, new Uint8Array(buf)))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    var redirectTo = location.href.split('#')[0].split('?')[0];
+    location.href = SB + '/auth/v1/authorize?provider=google&redirect_to='
+      + encodeURIComponent(redirectTo)
+      + '&code_challenge=' + challenge
+      + '&code_challenge_method=s256';
+  });
 }
 
 async function signEmail() {
@@ -270,10 +279,10 @@ async function startTrial() {
 async function renderHM() {
   go('hm');
   var el = document.getElementById('hm');
-  var nm   = (P && P.name) || 'Aspirant';
+  var nm = (P && P.name) || 'Aspirant';
   var seed = U ? U.id : nm;
-  var q    = QUOTES[Math.floor(Math.random() * QUOTES.length)];
-  var xp   = P && P.xp ? parseInt(P.xp) : 0;
+  var q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+  var xp = P && P.xp ? parseInt(P.xp) : 0;
 
   var trialHTML = '';
   if (P && P.trial_ends_at) {
@@ -317,9 +326,9 @@ async function renderHM() {
     + '<div class="quote"><div class="q-tag">Daily Fuel</div><div class="q-txt">"' + q[0] + '"</div><div class="q-by">— ' + q[1] + '</div></div>'
     + '</div>'
     + '<div class="bnav">'
-    + '<div class="bn on" onclick="go(\'hm\')">' + NAV_SVG.home    + 'Home</div>'
-    + '<div class="bn"    onclick="go(\'lb\')">' + NAV_SVG.ranks   + 'Ranks</div>'
-    + '<div class="bn"    onclick="go(\'pf\')">' + NAV_SVG.profile + 'Profile</div>'
+    + '<div class="bn on" onclick="go(\'hm\')">' + NAV_SVG.home + 'Home</div>'
+    + '<div class="bn" onclick="go(\'lb\')">' + NAV_SVG.ranks + 'Ranks</div>'
+    + '<div class="bn" onclick="go(\'pf\')">' + NAV_SVG.profile + 'Profile</div>'
     + '</div>';
 
   document.getElementById('ai-fab').style.display = 'flex';
@@ -339,7 +348,7 @@ async function renderHM() {
   api('quizzes', '?scheduled_for=eq.' + td + '&is_published=eq.true&limit=1').then(function (qz) {
     if (!qz || !qz.length) return;
     var htl = document.getElementById('htl'); if (htl) htl.textContent = qz[0].title;
-    var hp  = document.getElementById('hpill'); if (hp)  hp.textContent  = qz[0].exam_target;
+    var hp = document.getElementById('hpill'); if (hp) hp.textContent = qz[0].exam_target;
   });
 }
 
@@ -360,20 +369,20 @@ async function bQz() {
 function renderQZ() {
   var el = document.getElementById('qz');
   el.innerHTML =
-    '<div class="nav">' +
-      '<button onclick="if(confirm(\'Quit? Progress lost.\')){clearInterval(tmr);renderHM()}" style="background:none;border:none;color:var(--t3);font-size:14px;cursor:pointer;font-weight:700;font-family:inherit;display:flex;align-items:center;gap:5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Quit</button>' +
-      '<div class="q-ctr" id="qct">Q 1 / 10</div>' +
-      '<div class="q-timer"><div class="tdot"></div><span id="qtm">10:00</span></div>' +
-    '</div>' +
-    '<div class="qbody">' +
-      '<div class="prog-track"><div class="prog-fill" id="qpr" style="width:10%"></div></div>' +
-      '<div class="q-subj" id="qdf">General Studies · Medium</div>' +
-      '<div class="q-txt" id="qtx">Loading...</div>' +
-      '<div class="opts" id="qop"></div>' +
-      '<div class="exp" id="qex"><div class="exp-t">Explanation</div><div class="exp-body" id="qxt"></div></div>' +
-      '<button class="ask-ai-btn" id="ask-ai-q-btn" style="display:none" onclick="openChatWithContext()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>Ask AI to explain this</button>' +
-    '</div>' +
-    '<div class="q-foot"><button class="btn btn-p" id="bnx" onclick="nQ()" disabled>Select an answer</button></div>';
+    '<div class="nav">'
+    + '<button onclick="if(confirm(\'Quit? Progress lost.\')){clearInterval(tmr);renderHM()}" style="background:none;border:none;color:var(--t3);font-size:14px;cursor:pointer;font-weight:700;font-family:inherit;display:flex;align-items:center;gap:5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Quit</button>'
+    + '<div class="q-ctr" id="qct">Q 1 / 10</div>'
+    + '<div class="q-timer"><div class="tdot"></div><span id="qtm">10:00</span></div>'
+    + '</div>'
+    + '<div class="qbody">'
+    + '<div class="prog-track"><div class="prog-fill" id="qpr" style="width:10%"></div></div>'
+    + '<div class="q-subj" id="qdf">General Studies · Medium</div>'
+    + '<div class="q-txt" id="qtx">Loading...</div>'
+    + '<div class="opts" id="qop"></div>'
+    + '<div class="exp" id="qex"><div class="exp-t">Explanation</div><div class="exp-body" id="qxt"></div></div>'
+    + '<button class="ask-ai-btn" id="ask-ai-q-btn" style="display:none" onclick="openChatWithContext()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>Ask AI to explain this</button>'
+    + '</div>'
+    + '<div class="q-foot"><button class="btn btn-p" id="bnx" onclick="nQ()" disabled>Select an answer</button></div>';
   go('qz');
 }
 
@@ -390,7 +399,7 @@ function rQ() {
   ['A', 'B', 'C', 'D'].forEach(function (lt, i) {
     var v = [q.option_a, q.option_b, q.option_c, q.option_d];
     var b = document.createElement('button'); b.className = 'opt';
-    b.innerHTML = '<div class="opt-l">' + lt + '</div><span>' + v[i] + '</span>';
+    b.innerHTML = '<div class="opt-l">' + lt + '</div><span>' + (v[i] || '') + '</span>';
     b.onclick = function () { pA(lt, q); };
     oc.appendChild(b);
   });
@@ -422,21 +431,18 @@ function nQ() { if (!DN) return; QI++; if (QI >= QS.length) { eQz(); return; } r
 
 async function eQz() {
   clearInterval(tmr);
-  var sec      = Math.round((Date.now() - T0) / 1000);
-  var acc      = Math.round(SC / QS.length * 100);
+  var sec = Math.round((Date.now() - T0) / 1000);
+  var acc = Math.round(SC / QS.length * 100);
   var xpGained = SC * 10 + (QS.length - SC) * 2;
 
   await ins('user_attempts', { user_id: U.id, quiz_id: QS[0].quiz_id, score: SC, total_questions: QS.length, accuracy_pct: acc, time_taken_sec: sec });
 
-  // ── FIX #2 — Server-side XP via RPC ──
-  try {
-    await fetch(SB + '/rest/v1/rpc/increment_xp', {
-      method: 'POST',
-      headers: getH(),
-      body: JSON.stringify({ user_uuid: U.id, xp_to_add: xpGained })
-    });
-  } catch (e) { console.error('XP RPC failed:', e); }
-  // UI-only local update (source of truth is the DB)
+  // FIX #2: XP calculated and written server-side — cannot be manipulated client-side
+  await fetch(SB + '/rest/v1/rpc/increment_xp', {
+    method: 'POST',
+    headers: getH(),
+    body: JSON.stringify({ user_uuid: U.id, xp_to_add: xpGained })
+  });
   if (P) P.xp = (P.xp ? parseInt(P.xp) : 0) + xpGained;
 
   var beatTxt = 'First attempt today! 🌟';
@@ -466,63 +472,63 @@ function sTmr() {
 
 // ── RESULTS ──
 function renderRS(score, acc, sec, xpGained, beatTxt) {
-  var seed  = U ? U.id : 'user';
+  var seed = U ? U.id : 'user';
   var title = score >= 8 ? 'Outstanding!' : score >= 6 ? 'Great Job!' : score >= 4 ? 'Keep Going!' : 'Keep Practicing!';
-  var el    = document.getElementById('rs');
+  var el = document.getElementById('rs');
   el.innerHTML =
-    '<div id="conf-wrap"></div>' +
-    '<div class="res-wrap">' +
-      '<div class="res-main">' +
-        '<div class="res-glow"></div>' +
-        '<div class="res-av"><img src="' + avUrl(seed) + '" alt=""/></div>' +
-        '<div class="res-score">' + score + '<span>/10</span></div>' +
-        '<div class="res-title">' + title + '</div>' +
-        '<div class="res-sub">Here\'s how you did today</div>' +
-        '<div class="xp-earned">+' + xpGained + ' XP ⚡</div>' +
-        '<div class="beat-chip"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>' + beatTxt + '</div>' +
-      '</div>' +
-      '<div class="res-stats">' +
-        '<div class="rs-box"><div class="rs-val">' + acc + '%</div><div class="rs-lbl">Accuracy</div></div>' +
-        '<div class="rs-box"><div class="rs-val">' + score + '/10</div><div class="rs-lbl">Correct</div></div>' +
-        '<div class="rs-box"><div class="rs-val">' + sec + 's</div><div class="rs-lbl">Time</div></div>' +
-      '</div>' +
-      '<div class="pop-tease"><div class="pt-glow"></div>' +
-        '<div class="pt-badge">Pro Feature</div>' +
-        '<div class="pt-t">Your PoP Card is Ready 🪪</div>' +
-        '<div class="pt-s">Unlock your shareable Proof-of-Preparation card. Show your family you mean business.</div>' +
-        '<button class="btn btn-trial" onclick="startTrial()" style="margin-top:4px">Start 7-Day Free Trial →</button>' +
-      '</div>' +
-      '<button class="btn btn-g" onclick="shareScore(' + score + ',' + acc + ')" style="margin-bottom:10px;gap:8px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Share My Score</button>' +
-      '<button class="btn btn-g" onclick="renderHM()" style="color:var(--t3)">Back to Home</button>' +
-    '</div>';
+    '<div id="conf-wrap"></div>'
+    + '<div class="res-wrap">'
+    + '<div class="res-main">'
+    + '<div class="res-glow"></div>'
+    + '<div class="res-av"><img src="' + avUrl(seed) + '" alt=""/></div>'
+    + '<div class="res-score">' + score + '<span>/10</span></div>'
+    + '<div class="res-title">' + title + '</div>'
+    + '<div class="res-sub">Here\'s how you did today</div>'
+    + '<div class="xp-earned">+' + xpGained + ' XP ⚡</div>'
+    + '<div class="beat-chip"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>' + beatTxt + '</div>'
+    + '</div>'
+    + '<div class="res-stats">'
+    + '<div class="rs-box"><div class="rs-val">' + acc + '%</div><div class="rs-lbl">Accuracy</div></div>'
+    + '<div class="rs-box"><div class="rs-val">' + score + '/10</div><div class="rs-lbl">Correct</div></div>'
+    + '<div class="rs-box"><div class="rs-val">' + sec + 's</div><div class="rs-lbl">Time</div></div>'
+    + '</div>'
+    + '<div class="pop-tease"><div class="pt-glow"></div>'
+    + '<div class="pt-badge">Pro Feature</div>'
+    + '<div class="pt-t">Your PoP Card is Ready 🪪</div>'
+    + '<div class="pt-s">Unlock your shareable Proof-of-Preparation card. Show your family you mean business.</div>'
+    + '<button class="btn btn-trial" onclick="startTrial()" style="margin-top:4px">Start 7-Day Free Trial →</button>'
+    + '</div>'
+    + '<button class="btn btn-g" onclick="shareScore(' + score + ',' + acc + ')" style="margin-bottom:10px;gap:8px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Share My Score</button>'
+    + '<button class="btn btn-g" onclick="renderHM()" style="color:var(--t3)">Back to Home</button>'
+    + '</div>';
 }
 
 // ── LEADERBOARD ──
 async function renderLB() {
-  var el   = document.getElementById('lb');
+  var el = document.getElementById('lb');
   var seed = U ? U.id : 'user';
   el.innerHTML =
-    '<div class="nav">' +
-      '<div class="nav-logo">' + LOGO_SVG + '<div class="nav-logo-text">Micro <span>Mock</span></div></div>' +
-      '<div class="user-av" onclick="go(\'pf\')"><img src="' + avUrl(seed) + '" alt=""/></div>' +
-    '</div>' +
-    '<div class="lbody">' +
-      '<div style="margin-bottom:16px"><div class="h2" style="margin-bottom:4px">Leaderboard</div><div class="body">Today\'s top performers</div></div>' +
-      '<div class="my-rank-box" id="my-rank-box" style="display:none"><div style="font-size:12px;color:var(--t3);margin-bottom:4px">Your Position Today</div><div style="font-size:28px;font-weight:900;background:linear-gradient(135deg,#6366F1,#22D3EE);-webkit-background-clip:text;-webkit-text-fill-color:transparent" id="my-rank-n">#--</div></div>' +
-      '<div class="podium" id="podium" style="display:none"></div>' +
-      '<div class="lb-list" id="lbl"><div style="text-align:center;padding:40px;color:var(--t3)">Loading...</div></div>' +
-    '</div>' +
-    '<div class="bnav">' +
-      '<div class="bn" onclick="renderHM()">' + NAV_SVG.home    + 'Home</div>' +
-      '<div class="bn on" onclick="go(\'lb\')">' + NAV_SVG.ranks + 'Ranks</div>' +
-      '<div class="bn" onclick="go(\'pf\')">'    + NAV_SVG.profile + 'Profile</div>' +
-    '</div>';
+    '<div class="nav">'
+    + '<div class="nav-logo">' + LOGO_SVG + '<div class="nav-logo-text">Micro <span>Mock</span></div></div>'
+    + '<div class="user-av" onclick="go(\'pf\')"><img src="' + avUrl(seed) + '" alt=""/></div>'
+    + '</div>'
+    + '<div class="lbody">'
+    + '<div style="margin-bottom:16px"><div class="h2" style="margin-bottom:4px">Leaderboard</div><div class="body">Today\'s top performers</div></div>'
+    + '<div class="my-rank-box" id="my-rank-box" style="display:none"><div style="font-size:12px;color:var(--t3);margin-bottom:4px">Your Position Today</div><div style="font-size:28px;font-weight:900;background:linear-gradient(135deg,#6366F1,#22D3EE);-webkit-background-clip:text;-webkit-text-fill-color:transparent" id="my-rank-n">#--</div></div>'
+    + '<div class="podium" id="podium" style="display:none"></div>'
+    + '<div class="lb-list" id="lbl"><div style="text-align:center;padding:40px;color:var(--t3)">Loading...</div></div>'
+    + '</div>'
+    + '<div class="bnav">'
+    + '<div class="bn" onclick="renderHM()">' + NAV_SVG.home + 'Home</div>'
+    + '<div class="bn on" onclick="go(\'lb\')">' + NAV_SVG.ranks + 'Ranks</div>'
+    + '<div class="bn" onclick="go(\'pf\')">' + NAV_SVG.profile + 'Profile</div>'
+    + '</div>';
 
   var data = await api('daily_leaderboard', '?limit=20&order=rank.asc');
   var list = document.getElementById('lbl');
-  var pod  = document.getElementById('podium');
+  var pod = document.getElementById('podium');
   if (!data || !data.length) {
-    if (pod)  pod.style.display  = 'none';
+    if (pod) pod.style.display = 'none';
     if (list) list.innerHTML = '<div style="text-align:center;padding:56px 16px"><div style="font-size:40px;margin-bottom:14px">🏆</div><div style="font-size:17px;font-weight:800;margin-bottom:6px">No one yet today</div><div style="font-size:13px;color:var(--t3)">Be the first to complete today\'s quiz!</div><button class="btn btn-p" style="margin-top:16px;max-width:200px" onclick="renderHM()">Start Quiz →</button></div>';
     return;
   }
@@ -530,7 +536,7 @@ async function renderLB() {
     var me = data.find(function (d) { return d.id === U.id; });
     if (me) {
       var mrb = document.getElementById('my-rank-box'); if (mrb) mrb.style.display = 'block';
-      var mrn = document.getElementById('my-rank-n');   if (mrn) mrn.textContent = '#' + me.rank;
+      var mrn = document.getElementById('my-rank-n'); if (mrn) mrn.textContent = '#' + me.rank;
     }
   }
   var top3 = data.slice(0, Math.min(3, data.length));
@@ -538,14 +544,23 @@ async function renderLB() {
     pod.style.display = 'flex';
     var order = [top3[1], top3[0], top3[2]], cls = ['pod2', 'pod1', 'pod3'], medals = ['🥈', '🥇', '🥉'], ht = ['68px', '86px', '54px'];
     pod.innerHTML = order.map(function (it, i) {
-      return '<div class="pod ' + cls[i] + '"><div style="font-size:20px">' + medals[i] + '</div><div class="pod-av" style="' + (i === 1 ? 'border:2px solid #F59E0B' : i === 0 ? 'border:2px solid #94A3B8' : 'border:2px solid #CD7F32') + '"><img src="' + avUrl(it.id || it.name) + '" alt=""/></div><div class="pod-nm">' + (it.name || 'Aspirant') + '</div><div class="pod-sc">' + it.score + '/10</div><div class="pod-stand" style="height:' + ht[i] + '">' + (i === 1 ? '1' : i === 0 ? '2' : '3') + '</div></div>';
+      return '<div class="pod ' + cls[i] + '"><div style="font-size:20px">' + medals[i] + '</div>'
+        + '<div class="pod-av" style="' + (i === 1 ? 'border:2px solid #F59E0B' : i === 0 ? 'border:2px solid #94A3B8' : 'border:2px solid #CD7F32') + '"><img src="' + avUrl(it.id || it.name) + '" alt=""/></div>'
+        + '<div class="pod-nm">' + (it.name || 'Aspirant') + '</div>'
+        + '<div class="pod-sc">' + it.score + '/10</div>'
+        + '<div class="pod-stand" style="height:' + ht[i] + '">' + (i === 1 ? '1' : i === 0 ? '2' : '3') + '</div></div>';
     }).join('');
   } else if (pod) pod.style.display = 'none';
 
   if (list) {
     list.innerHTML = data.slice(top3.length >= 3 ? 3 : 0).map(function (it) {
       var isMe = U && it.id === U.id;
-      return '<div class="lb-row' + (isMe ? ' me' : '') + '"><div class="lb-rk">#' + it.rank + '</div><div class="lb-av"><img src="' + avUrl(it.id || it.name) + '" alt=""/></div><div class="lb-info"><div class="lb-nm">' + (it.name || 'Aspirant') + (isMe ? ' · You' : '') + '</div><div class="lb-ex">' + (it.exam_target || 'UPSC') + '</div></div><div class="lb-right"><div class="lb-sc">' + it.score + '/10</div><div class="lb-acc">' + (it.accuracy_pct || 0) + '%</div></div></div>';
+      return '<div class="lb-row' + (isMe ? ' me' : '') + '">'
+        + '<div class="lb-rk">#' + it.rank + '</div>'
+        + '<div class="lb-av"><img src="' + avUrl(it.id || it.name) + '" alt=""/></div>'
+        + '<div class="lb-info"><div class="lb-nm">' + (it.name || 'Aspirant') + (isMe ? ' · You' : '') + '</div><div class="lb-ex">' + (it.exam_target || 'UPSC') + '</div></div>'
+        + '<div class="lb-right"><div class="lb-sc">' + it.score + '/10</div><div class="lb-acc">' + (it.accuracy_pct || 0) + '%</div></div>'
+        + '</div>';
     }).join('');
   }
 }
@@ -553,9 +568,9 @@ async function renderLB() {
 // ── PROFILE ──
 async function renderPF() {
   var seed = U ? U.id : 'user';
-  var el   = document.getElementById('pf');
-  var xp   = P && P.xp ? parseInt(P.xp) : 0;
-  var lvl  = getLvl(xp);
+  var el = document.getElementById('pf');
+  var xp = P && P.xp ? parseInt(P.xp) : 0;
+  var lvl = getLvl(xp);
   var trialBadge = '';
   if (P && P.trial_ends_at) {
     var diff = Math.ceil((new Date(P.trial_ends_at) - new Date()) / (1000 * 60 * 60 * 24));
@@ -563,61 +578,61 @@ async function renderPF() {
   }
 
   el.innerHTML =
-    '<div class="nav"><div class="nav-logo">' + LOGO_SVG + '<div class="nav-logo-text">Micro <span>Mock</span></div></div></div>' +
-    '<div class="pbody">' +
-      '<div class="pf-hero"><div class="pf-glow"></div>' +
-        '<div class="pf-av"><img id="pf-av-img" src="' + avUrl(seed) + '" alt=""/></div>' +
-        '<div class="pf-nm">' + ((P && P.name) || 'Aspirant') + '</div>' +
-        '<div class="pf-em">' + (U && U.email ? U.email : '') + '</div>' +
-        '<div class="pf-badges"><div class="badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="#A5B4FC"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2z"/></svg>Free Plan</div>' + trialBadge + '<div class="badge level">' + lvl.i + ' ' + lvl.n + '</div></div>' +
-      '</div>' +
-      '<div class="label" style="margin-bottom:11px">Proof of Preparation Card</div>' +
-      '<div class="pop-wrap">' +
-        '<div class="pop-blur">' +
-          '<div class="pop-lock-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#818CF8" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>' +
-          '<div style="font-size:17px;font-weight:800">PoP Card Locked</div>' +
-          '<div style="font-size:13px;color:var(--t2);text-align:center;max-width:220px;line-height:1.6">Start your free trial to unlock and share your preparation identity card</div>' +
-          '<button class="btn btn-trial btn-sm" onclick="startTrial()">Start 7-Day Trial Free</button>' +
-        '</div>' +
-        '<div class="pop-inner">' +
-          '<div class="pop-hd"><div class="pop-av"><img src="' + avUrl(seed) + '" alt=""/></div><div><div class="pop-nm" id="pop-nm">' + ((P && P.name) || 'Aspirant') + '</div><div class="pop-sub" id="pop-sub">Preparing for ' + ((P && P.exam_target) || 'UPSC') + '</div></div></div>' +
-          '<div class="pop-grid"><div class="pop-s"><div class="pop-sn" id="pd">0</div><div class="pop-sl">Days</div></div><div class="pop-s"><div class="pop-sn" id="pa">0%</div><div class="pop-sl">Accuracy</div></div><div class="pop-s"><div class="pop-sn" id="pq">0</div><div class="pop-sl">Quizzes</div></div></div>' +
-          '<div class="pop-bars"><div class="pb-row"><div class="pb-hd"><span>Accuracy</span><span id="gs-p">0%</span></div><div class="pb-bg"><div class="pb-fg" id="gs-b" style="width:0%"></div></div></div><div class="pb-row"><div class="pb-hd"><span>Readiness</span><span id="rd-p">0%</span></div><div class="pb-bg"><div class="pb-fg" id="rd-b" style="width:0%;background:linear-gradient(90deg,#10B981,#22D3EE)"></div></div></div></div>' +
-          '<div class="pop-ft"><span style="font-weight:700">micro-mock.in</span><div class="ready-badge" id="pop-ready">0% Ready</div></div>' +
-        '</div>' +
-      '</div>' +
-      '<div class="up-card">' +
-        '<div class="up-t">Upgrade to Pro</div>' +
-        '<div class="up-s">Unlock your full preparation identity. Your family deserves to see your hard work.</div>' +
-        '<div class="up-feats">' +
-          '<div class="uf"><div class="uf-ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Ranked leaderboard</div>' +
-          '<div class="uf"><div class="uf-ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Shareable PoP Card</div>' +
-          '<div class="uf"><div class="uf-ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Unlimited AI questions</div>' +
-          '<div class="uf"><div class="uf-ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Full performance history</div>' +
-        '</div>' +
-        '<button class="btn btn-trial" onclick="window.open(\'https://rzp.io/rzp/zJ6jF8B\',\'_blank\')" style="font-size:16px;padding:17px;margin-bottom:10px">Upgrade Now — ₹149/month →</button>' +
-      '</div>' +
-      '<button class="btn" style="background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.18);color:#FDA4AF;margin-top:4px" onclick="logout()">Sign Out</button>' +
-    '</div>' +
-    '<div class="bnav">' +
-      '<div class="bn" onclick="renderHM()">' + NAV_SVG.home    + 'Home</div>' +
-      '<div class="bn" onclick="go(\'lb\')">'  + NAV_SVG.ranks   + 'Ranks</div>' +
-      '<div class="bn on" onclick="go(\'pf\')">' + NAV_SVG.profile + 'Profile</div>' +
-    '</div>';
+    '<div class="nav"><div class="nav-logo">' + LOGO_SVG + '<div class="nav-logo-text">Micro <span>Mock</span></div></div></div>'
+    + '<div class="pbody">'
+    + '<div class="pf-hero"><div class="pf-glow"></div>'
+    + '<div class="pf-av"><img id="pf-av-img" src="' + avUrl(seed) + '" alt=""/></div>'
+    + '<div class="pf-nm">' + ((P && P.name) || 'Aspirant') + '</div>'
+    + '<div class="pf-em">' + (U && U.email ? U.email : '') + '</div>'
+    + '<div class="pf-badges"><div class="badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="#A5B4FC"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2z"/></svg>Free Plan</div>' + trialBadge + '<div class="badge level">' + lvl.i + ' ' + lvl.n + '</div></div>'
+    + '</div>'
+    + '<div class="label" style="margin-bottom:11px">Proof of Preparation Card</div>'
+    + '<div class="pop-wrap">'
+    + '<div class="pop-blur">'
+    + '<div class="pop-lock-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#818CF8" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>'
+    + '<div style="font-size:17px;font-weight:800">PoP Card Locked</div>'
+    + '<div style="font-size:13px;color:var(--t2);text-align:center;max-width:220px;line-height:1.6">Start your free trial to unlock and share your preparation identity card</div>'
+    + '<button class="btn btn-trial btn-sm" onclick="startTrial()">Start 7-Day Trial Free</button>'
+    + '</div>'
+    + '<div class="pop-inner">'
+    + '<div class="pop-hd"><div class="pop-av"><img src="' + avUrl(seed) + '" alt=""/></div><div><div class="pop-nm" id="pop-nm">' + ((P && P.name) || 'Aspirant') + '</div><div class="pop-sub" id="pop-sub">Preparing for ' + ((P && P.exam_target) || 'UPSC') + '</div></div></div>'
+    + '<div class="pop-grid"><div class="pop-s"><div class="pop-sn" id="pd">0</div><div class="pop-sl">Days</div></div><div class="pop-s"><div class="pop-sn" id="pa">0%</div><div class="pop-sl">Accuracy</div></div><div class="pop-s"><div class="pop-sn" id="pq">0</div><div class="pop-sl">Quizzes</div></div></div>'
+    + '<div class="pop-bars"><div class="pb-row"><div class="pb-hd"><span>Accuracy</span><span id="gs-p">0%</span></div><div class="pb-bg"><div class="pb-fg" id="gs-b" style="width:0%"></div></div></div><div class="pb-row"><div class="pb-hd"><span>Readiness</span><span id="rd-p">0%</span></div><div class="pb-bg"><div class="pb-fg" id="rd-b" style="width:0%;background:linear-gradient(90deg,#10B981,#22D3EE)"></div></div></div></div>'
+    + '<div class="pop-ft"><span style="font-weight:700">micro-mock.in</span><div class="ready-badge" id="pop-ready">0% Ready</div></div>'
+    + '</div>'
+    + '</div>'
+    + '<div class="up-card">'
+    + '<div class="up-t">Upgrade to Pro</div>'
+    + '<div class="up-s">Unlock your full preparation identity. Your family deserves to see your hard work.</div>'
+    + '<div class="up-feats">'
+    + '<div class="uf"><div class="uf-ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Ranked leaderboard</div>'
+    + '<div class="uf"><div class="uf-ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Shareable PoP Card</div>'
+    + '<div class="uf"><div class="uf-ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Unlimited AI questions</div>'
+    + '<div class="uf"><div class="uf-ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Full performance history</div>'
+    + '</div>'
+    + '<button class="btn btn-trial" onclick="window.open(\'https://rzp.io/rzp/zJ6jF8B\',\'_blank\')" style="font-size:16px;padding:17px;margin-bottom:10px">Upgrade Now — ₹149/month →</button>'
+    + '</div>'
+    + '<button class="btn" style="background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.18);color:#FDA4AF;margin-top:4px" onclick="logout()">Sign Out</button>'
+    + '</div>'
+    + '<div class="bnav">'
+    + '<div class="bn" onclick="renderHM()">' + NAV_SVG.home + 'Home</div>'
+    + '<div class="bn" onclick="go(\'lb\')">' + NAV_SVG.ranks + 'Ranks</div>'
+    + '<div class="bn on" onclick="go(\'pf\')">' + NAV_SVG.profile + 'Profile</div>'
+    + '</div>';
 
   api('user_attempts', '?user_id=eq.' + U.id).then(function (at) {
     if (!at || !at.length) return;
     var avg = at.reduce(function (s, a) { return s + parseFloat(a.accuracy_pct || 0); }, 0) / at.length;
-    var ar  = Math.round(avg);
-    var pd  = document.getElementById('pd');       if (pd)  pd.textContent  = at.length;
-    var pa  = document.getElementById('pa');       if (pa)  pa.textContent  = ar + '%';
-    var pq  = document.getElementById('pq');       if (pq)  pq.textContent  = at.length;
-    var gs  = document.getElementById('gs-p');     if (gs)  gs.textContent  = ar + '%';
-    var gsb = document.getElementById('gs-b');     if (gsb) gsb.style.width = ar + '%';
-    var rd  = document.getElementById('rd-p');     if (rd)  rd.textContent  = Math.min(ar, 100) + '%';
-    var rdb = document.getElementById('rd-b');     if (rdb) rdb.style.width = Math.min(ar, 100) + '%';
-    var ps  = document.getElementById('pop-sub');  if (ps)  ps.textContent  = 'Preparing for ' + (P && P.exam_target ? P.exam_target : 'UPSC') + ' · Day ' + at.length;
-    var pr  = document.getElementById('pop-ready');if (pr)  pr.textContent  = Math.min(ar, 100) + '% Ready';
+    var ar = Math.round(avg);
+    var pd = document.getElementById('pd'); if (pd) pd.textContent = at.length;
+    var pa = document.getElementById('pa'); if (pa) pa.textContent = ar + '%';
+    var pq = document.getElementById('pq'); if (pq) pq.textContent = at.length;
+    var gs = document.getElementById('gs-p'); if (gs) gs.textContent = ar + '%';
+    var gsb = document.getElementById('gs-b'); if (gsb) gsb.style.width = ar + '%';
+    var rd = document.getElementById('rd-p'); if (rd) rd.textContent = Math.min(ar, 100) + '%';
+    var rdb = document.getElementById('rd-b'); if (rdb) rdb.style.width = Math.min(ar, 100) + '%';
+    var ps = document.getElementById('pop-sub'); if (ps) ps.textContent = 'Preparing for ' + ((P && P.exam_target) || 'UPSC') + ' · Day ' + at.length;
+    var pr = document.getElementById('pop-ready'); if (pr) pr.textContent = Math.min(ar, 100) + '% Ready';
   });
 }
 
@@ -643,33 +658,38 @@ function confetti() {
 
 // ── AI CHATBOT ──
 function updateAiCount() {
-  var cnt   = document.getElementById('ai-count');
+  var cnt = document.getElementById('ai-count');
   var badge = document.getElementById('chat-limit-badge');
   if (P && P.plan === 'pro') {
-    if (cnt)   cnt.style.display = 'none';
+    if (cnt) cnt.style.display = 'none';
     if (badge) badge.textContent = 'Unlimited';
   } else {
-    if (cnt)   { if (aiLeft < 3) { cnt.style.display = 'flex'; cnt.textContent = aiLeft; } else cnt.style.display = 'none'; }
+    if (cnt) { if (aiLeft < 3) { cnt.style.display = 'flex'; cnt.textContent = aiLeft; } else cnt.style.display = 'none'; }
     if (badge) badge.textContent = aiLeft + ' left today';
   }
 }
 
-function openChat() { document.getElementById('chat-drawer').classList.add('open'); }
+function openChat() {
+  document.getElementById('chat-drawer').classList.add('open');
+}
 
 function openChatWithContext() {
   if (chatCtx) {
     var cb = document.getElementById('ctx-banner'); if (cb) cb.style.display = 'flex';
-    var ct = document.getElementById('ctx-text');   if (ct) ct.textContent = 'Asking about: "' + chatCtx.question.slice(0, 50) + '..."';
+    var ct = document.getElementById('ctx-text'); if (ct) ct.textContent = 'Asking about: "' + chatCtx.question.slice(0, 50) + '..."';
   }
   openChat();
 }
 
-function closeChat() { document.getElementById('chat-drawer').classList.remove('open'); }
+function closeChat() {
+  document.getElementById('chat-drawer').classList.remove('open');
+}
 
-function sendQuick(msg) { var inp = document.getElementById('chat-inp'); if (inp) inp.value = msg; sendMsg(); }
+function sendQuick(msg) {
+  var inp = document.getElementById('chat-inp'); if (inp) inp.value = msg;
+  sendMsg();
+}
 
-// ── STRUCTURAL FIX — sendMsg() is now properly closed.
-// addMsg / addTyping / removeTyping are at module scope (see below).
 async function sendMsg() {
   if (sending) return;
   var inp = document.getElementById('chat-inp');
@@ -683,31 +703,25 @@ async function sendMsg() {
   if (inp) { inp.value = ''; inp.style.height = '44px'; }
   addMsg('user', msg);
   var qc = document.getElementById('quick-chips'); if (qc) qc.style.display = 'none';
-  var cb = document.getElementById('ctx-banner');  if (cb) cb.style.display = 'none';
-
-  var typId   = 'typ-' + Date.now();
+  var cb = document.getElementById('ctx-banner'); if (cb) cb.style.display = 'none';
+  var typId = 'typ-' + Date.now();
   addTyping(typId);
   sending = true;
   var sendBtn = document.getElementById('chat-send'); if (sendBtn) sendBtn.disabled = true;
-
   var sys = 'You are a helpful AI assistant for Indian government exam prep (UPSC, SSC, Banking, RBI). Be concise, accurate, encouraging. Keep answers under 150 words. Use simple language.';
   if (chatCtx) sys += '\n\nCurrent question: ' + chatCtx.question + '\nCorrect answer: ' + chatCtx.answer + '\nExplanation: ' + chatCtx.explanation + '\nUser selected: ' + chatCtx.userAnswer;
-
   var msgs = chatMsgs.slice(-6).concat([{ role: 'user', content: msg }]);
-
   try {
     var r = await fetch(EDGE_URL, {
       method: 'POST',
-      headers: getH(),
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + KEY, 'apikey': KEY },
       body: JSON.stringify({ messages: msgs, system: sys, isPro: P && P.plan === 'pro' })
     });
-
     removeTyping(typId);
-
     if (!r.ok) {
       addMsg('ai', 'Could not connect to AI. Check your internet and try again.');
     } else {
-      var d     = await r.json();
+      var d = await r.json();
       var reply = d.reply || 'Sorry, could not answer right now.';
       addMsg('ai', reply);
       chatMsgs.push({ role: 'user', content: msg }, { role: 'assistant', content: reply });
@@ -715,17 +729,18 @@ async function sendMsg() {
     }
   } catch (e) {
     removeTyping(typId);
-    addMsg('ai', 'Error connecting to AI. Please try again.');
+    addMsg('ai', 'Something went wrong. Please try again.');
   } finally {
     sending = false;
     var sb = document.getElementById('chat-send'); if (sb) sb.disabled = false;
   }
 }
 
-// ── CHAT HELPERS — module-level (NOT inside sendMsg) ──
+// addMsg, addTyping, removeTyping are top-level — NOT inside sendMsg
 function addMsg(role, txt) {
-  var msgs = document.getElementById('chat-msgs'); if (!msgs) return;
-  var div  = document.createElement('div'); div.className = 'msg ' + role;
+  var msgs = document.getElementById('chat-msgs');
+  if (!msgs) return;
+  var div = document.createElement('div'); div.className = 'msg ' + role;
   var avHtml = role === 'ai'
     ? '<div class="msg-av ai"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/></svg></div>'
     : '<div class="msg-av user"><img src="' + avUrl(U ? U.id : 'user') + '" alt=""/></div>';
@@ -736,7 +751,7 @@ function addMsg(role, txt) {
 
 function addTyping(id) {
   var msgs = document.getElementById('chat-msgs'); if (!msgs) return;
-  var div  = document.createElement('div'); div.className = 'msg ai'; div.id = id;
+  var div = document.createElement('div'); div.className = 'msg ai'; div.id = id;
   div.innerHTML = '<div class="msg-av ai"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/></svg></div><div class="msg-bubble" style="padding:0"><div class="msg-typing"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>';
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
