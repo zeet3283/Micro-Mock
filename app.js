@@ -1168,8 +1168,8 @@ async function sendMsg() {
   try {
     var r = await fetch(EDGE_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + KEY, 'apikey': KEY },
-      body: JSON.stringify({ messages: msgs, system: sys, isPro: P && P.plan === 'pro' })
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('mm_tk') || KEY), 'apikey': KEY },
+      body: JSON.stringify({ messages: msgs, system: sys })
     });
     removeTyping(typId);
     if (!r.ok) {
