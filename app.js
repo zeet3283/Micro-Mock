@@ -395,8 +395,8 @@ async function generateMCQs() {
   try {
     var r = await fetch(GEN_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + KEY, 'apikey': KEY },
-      body: JSON.stringify({ type: type, content: content, count: mgCount, userToken: tk })
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (tk || KEY), 'apikey': KEY },
+      body: JSON.stringify({ type: type, content: content, count: mgCount })
     });
     var d = await r.json();
     if (!r.ok) {
