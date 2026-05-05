@@ -1,7 +1,6 @@
 // ── CONFIG ──
 var SB = 'https://xkijsokwttuypxcgppbe.supabase.co';
 var KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhraWpzb2t3dHR1eXB4Y2dwcGJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODE4NzcsImV4cCI6MjA4ODY1Nzg3N30.GVnoXPvWaPtStQpqRV5ozUwjb-JJhhl1Iba660Z8aa8';
-// ── FIX #1: dynamic auth header — reads live JWT so auth.uid() works in RLS ──
 function getH(extra) {
   var tk = localStorage.getItem('mm_tk');
   var h = { 'apikey': KEY, 'Authorization': 'Bearer ' + (tk || KEY), 'Content-Type': 'application/json' };
@@ -9,23 +8,15 @@ function getH(extra) {
 }
 var EDGE_URL = 'https://xkijsokwttuypxcgppbe.supabase.co/functions/v1/Chat';
 
-// ── SECURITY: HTML escape ──
-// Use on every user-sourced string before inserting into innerHTML
 function esc(s) {
   return String(s == null ? '' : s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;');
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
 }
 
-// ── SECURITY: hash seed before sending to dicebear (don't expose real UUIDs) ──
 function hashSeed(str) {
   var h = 5381;
-  for (var i = 0; i < str.length; i++) {
-    h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
-  }
+  for (var i = 0; i < str.length; i++) { h = (Math.imul(31, h) + str.charCodeAt(i)) | 0; }
   return (h >>> 0).toString(36);
 }
 
@@ -81,9 +72,7 @@ function avUrl(seed) {
   return 'https://api.dicebear.com/7.x/shapes/svg?seed=' + encodeURIComponent(hashSeed(seed || 'default')) + '&backgroundColor=6366f1,8b5cf6,10b981,f59e0b,22d3ee&backgroundType=gradientLinear';
 }
 function getLvl(xp) {
-  for (var i = LEVELS.length - 1; i >= 0; i--) {
-    if (xp >= LEVELS[i].min) return LEVELS[i];
-  }
+  for (var i = LEVELS.length - 1; i >= 0; i--) { if (xp >= LEVELS[i].min) return LEVELS[i]; }
   return LEVELS[0];
 }
 function updLvlUI(xp) {
@@ -99,7 +88,7 @@ function updLvlUI(xp) {
   var hx = document.getElementById('hxp'); if (hx) hx.textContent = xp;
 }
 
-// ── ONBOARDING SLIDES ──
+// ── ONBOARDING ──
 var obIdx = 0;
 function obGoNext() {
   obIdx++;
@@ -135,7 +124,6 @@ async function patch(t, q, d) {
 // ── AUTH ──
 async function init() {
   try {
-    // FIX #3: PKCE — exchange ?code= for access token
     var code = new URLSearchParams(location.search).get('code');
     if (code) {
       history.replaceState(null, '', location.pathname);
@@ -143,23 +131,18 @@ async function init() {
       sessionStorage.removeItem('pkce_verifier');
       localStorage.removeItem('pkce_verifier');
       var pkceRes = await fetch(SB + '/auth/v1/token?grant_type=pkce', {
-        method: 'POST',
-        headers: getH(),
+        method: 'POST', headers: getH(),
         body: JSON.stringify({ auth_code: code, code_verifier: verifier })
       });
       var pkceData = await pkceRes.json();
-      if (pkceData.access_token) {
-        localStorage.setItem('mm_tk', pkceData.access_token);
-      } else { go('lg'); return; }
+      if (pkceData.access_token) { localStorage.setItem('mm_tk', pkceData.access_token); }
+      else { go('lg'); return; }
     }
     var hash = location.hash;
     if (hash && hash.includes('access_token')) {
       var params = new URLSearchParams(hash.slice(1));
       var tk = params.get('access_token');
-      if (tk) {
-        localStorage.setItem('mm_tk', tk);
-        history.replaceState(null, '', location.pathname);
-      }
+      if (tk) { localStorage.setItem('mm_tk', tk); history.replaceState(null, '', location.pathname); }
     }
     var token = localStorage.getItem('mm_tk');
     if (!token) {
@@ -169,10 +152,7 @@ async function init() {
     }
     var ctrl = new AbortController();
     var tid = setTimeout(function () { ctrl.abort(); }, 6000);
-    var res = await fetch(SB + '/auth/v1/user', {
-      headers: getH(),
-      signal: ctrl.signal
-    });
+    var res = await fetch(SB + '/auth/v1/user', { headers: getH(), signal: ctrl.signal });
     clearTimeout(tid);
     if (!res.ok) { localStorage.removeItem('mm_tk'); go('lg'); return; }
     U = await res.json();
@@ -181,13 +161,10 @@ async function init() {
       P = profileArr[0];
       if (!P.name || P.name.trim() === '') { go('ob'); return; }
       await renderHM();
-    } else {
-      go('ob');
-    }
+    } else { go('ob'); }
   } catch (err) {
     console.error('Init failed:', err.name, err.message);
-    localStorage.removeItem('mm_tk');
-    go('lg');
+    localStorage.removeItem('mm_tk'); go('lg');
   }
 }
 
@@ -248,8 +225,7 @@ function renderMGForm(remaining) {
     + '<button class="mg-cnt" onclick="setMgCount(15,this)">15</button>'
     + '<button class="mg-cnt" onclick="setMgCount(20,this)">20</button>'
     + '<button class="mg-cnt" onclick="setMgCount(25,this)">25</button>'
-    + '</div>'
-    + '</div>'
+    + '</div></div>'
     + '<button class="btn btn-p" id="mg-gen-btn" onclick="generateMCQs()" style="margin-bottom:16px">'
     + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>'
     + 'Generate MCQs</button>';
@@ -262,19 +238,14 @@ function renderMGPhotoInput() {
     + '<div style="font-size:40px;margin-bottom:10px">📷</div>'
     + '<div style="font-size:14px;font-weight:700;margin-bottom:4px">Tap to take photo or upload</div>'
     + '<div style="font-size:12px;color:var(--t3)">Notes, textbook pages, handwritten content</div>'
-    + '</div>'
-    + '</div>';
+    + '</div></div>';
 }
-var mgMode = 'photo';
-var mgCount = 5;
-var mgPhotoB64 = null;
+var mgMode = 'photo', mgCount = 5, mgPhotoB64 = null;
 function mgTab(t) {
-  mgMode = t;
-  mgPhotoB64 = null;
+  mgMode = t; mgPhotoB64 = null;
   document.querySelectorAll('.mg-tab').forEach(function (b) { b.classList.remove('on'); });
   var tb = document.getElementById('mgt-' + t); if (tb) tb.classList.add('on');
-  var wrap = document.getElementById('mg-input-wrap');
-  if (!wrap) return;
+  var wrap = document.getElementById('mg-input-wrap'); if (!wrap) return;
   if (t === 'photo') {
     wrap.innerHTML = renderMGPhotoInput();
   } else if (t === 'pdf') {
@@ -290,7 +261,6 @@ function mgTab(t) {
     wrap.innerHTML = '<textarea id="mg-text-inp" class="mg-textarea" placeholder="Paste or type your study content here..."></textarea>';
   }
 }
-// Fixed: pass btn element explicitly instead of relying on implicit `event`
 function setMgCount(n, btn) {
   mgCount = n;
   document.querySelectorAll('.mg-cnt').forEach(function (b) { b.classList.remove('on'); });
@@ -324,7 +294,6 @@ function onPDFSelected(inp) {
   var preview = document.getElementById('mg-pdf-preview');
   var prompt = document.getElementById('mg-pdf-prompt');
   var nm = document.getElementById('mg-pdf-name');
-  // Safely set filename via textContent (not innerHTML)
   if (nm) nm.textContent = file.name;
   if (preview) preview.style.display = 'block';
   if (prompt) prompt.style.display = 'none';
@@ -337,9 +306,7 @@ function onPDFSelected(inp) {
       extractPDFText(file);
     };
     document.head.appendChild(s);
-  } else {
-    extractPDFText(file);
-  }
+  } else { extractPDFText(file); }
 }
 function extractPDFText(file) {
   var reader = new FileReader();
@@ -353,13 +320,9 @@ function extractPDFText(file) {
         var content = await page.getTextContent();
         text += content.items.map(function (x) { return x.str; }).join(' ') + '\n';
       }
-      // Cap at 15,000 chars to prevent oversized payloads
       pdfText = text.trim().slice(0, 15000);
       toast(pdf.numPages + ' pages read ✓', 'ok');
-    } catch (err) {
-      toast('Could not read PDF. Try a text-based PDF.', 'err');
-      clearPDF();
-    }
+    } catch (err) { toast('Could not read PDF. Try a text-based PDF.', 'err'); clearPDF(); }
   };
   reader.readAsArrayBuffer(file);
 }
@@ -377,17 +340,14 @@ async function generateMCQs() {
   var content = null, type = 'text';
   if (mgMode === 'photo') {
     if (!mgPhotoB64) { toast('Please select a photo first', 'err'); return; }
-    content = mgPhotoB64;
-    type = 'image';
+    content = mgPhotoB64; type = 'image';
   } else if (mgMode === 'pdf') {
     if (!pdfText) { toast('Please upload a PDF first', 'err'); return; }
-    content = pdfText;
-    type = 'text';
+    content = pdfText; type = 'text';
   } else {
     var ta = document.getElementById('mg-text-inp');
     if (!ta || !ta.value.trim()) { toast('Please enter some content', 'err'); return; }
-    content = ta.value.trim().slice(0, 15000);
-    type = 'text';
+    content = ta.value.trim().slice(0, 15000); type = 'text';
   }
   if (btn) { btn.disabled = true; btn.textContent = '✨ Generating...'; }
   var resultsEl = document.getElementById('mg-results');
@@ -434,8 +394,7 @@ async function generateMCQs() {
   }
 }
 function showMGReady(mcqs, remaining) {
-  var el = document.getElementById('mg-results');
-  if (!el) return;
+  var el = document.getElementById('mg-results'); if (!el) return;
   var subjects = [...new Set(mcqs.map(function (q) { return q.subject || 'General'; }))].slice(0, 3);
   el.innerHTML = '<div class="mg-ready">'
     + '<div style="font-size:48px;margin-bottom:12px">🎯</div>'
@@ -455,24 +414,10 @@ function showMGReady(mcqs, remaining) {
 function startGenQuiz() {
   if (!genResults.length) return;
   QS = genResults.map(function (q, i) {
-    return {
-      id: 'gen_' + Date.now() + '_' + i,
-      quiz_id: 'generated',
-      question_text: q.question,
-      option_a: q.option_a,
-      option_b: q.option_b,
-      option_c: q.option_c,
-      option_d: q.option_d,
-      correct_option: q.correct_option,
-      explanation: q.explanation || '',
-      subject: q.subject || 'General',
-      difficulty: q.difficulty || 'medium',
-      is_generated: true
-    };
+    return { id: 'gen_' + Date.now() + '_' + i, quiz_id: 'generated', question_text: q.question, option_a: q.option_a, option_b: q.option_b, option_c: q.option_c, option_d: q.option_d, correct_option: q.correct_option, explanation: q.explanation || '', subject: q.subject || 'General', difficulty: q.difficulty || 'medium', is_generated: true };
   });
   QI = 0; SC = 0; TL = QS.length * 60; T0 = Date.now(); chatCtx = null;
-  isGenQuiz = true;
-  renderQZ(); rQ(); sTmr();
+  isGenQuiz = true; renderQZ(); rQ(); sTmr();
 }
 
 // ── THEME ──
@@ -483,18 +428,14 @@ function initTheme() {
 function toggleTheme() {
   var isLight = document.body.classList.toggle('light');
   localStorage.setItem('mm_theme', isLight ? 'light' : 'dark');
-  document.querySelectorAll('.theme-toggle').forEach(function (t) {
-    t.classList.toggle('on', isLight);
-  });
+  document.querySelectorAll('.theme-toggle').forEach(function (t) { t.classList.toggle('on', isLight); });
 }
 initTheme();
 
 // ── BOOT ──
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function () { setTimeout(init, 100); });
-} else {
-  setTimeout(init, 100);
-}
+} else { setTimeout(init, 100); }
 
 // ── LOGIN ──
 function stab(t) {
@@ -502,23 +443,17 @@ function stab(t) {
   document.querySelectorAll('.aform').forEach(function (f) { f.classList.remove('on'); });
   document.getElementById('tab-' + t).classList.add('on');
 }
-// FIX #3: PKCE-compliant Google sign-in
 function signGoogle() {
   var array = new Uint8Array(32);
   crypto.getRandomValues(array);
-  var verifier = btoa(String.fromCharCode.apply(null, array))
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+  var verifier = btoa(String.fromCharCode.apply(null, array)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
   localStorage.setItem('pkce_verifier', verifier);
   sessionStorage.setItem('pkce_verifier', verifier);
   var encoder = new TextEncoder();
   crypto.subtle.digest('SHA-256', encoder.encode(verifier)).then(function (buf) {
-    var challenge = btoa(String.fromCharCode.apply(null, new Uint8Array(buf)))
-      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    var challenge = btoa(String.fromCharCode.apply(null, new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
     var redirectTo = location.href.split('#')[0].split('?')[0];
-    location.href = SB + '/auth/v1/authorize?provider=google&redirect_to='
-      + encodeURIComponent(redirectTo)
-      + '&code_challenge=' + challenge
-      + '&code_challenge_method=s256';
+    location.href = SB + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(redirectTo) + '&code_challenge=' + challenge + '&code_challenge_method=s256';
   });
 }
 async function signEmail() {
@@ -557,19 +492,17 @@ async function fOb() {
   if (!nm) { toast('Enter your name', 'err'); return; }
   if (nm.length > 50) { toast('Name must be 50 characters or less', 'err'); return; }
   if (!EX) { toast('Select your exam', 'err'); return; }
-  var tk = localStorage.getItem('mm_tk');
   var trialEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
   try {
     await fetch(SB + '/rest/v1/users', {
       method: 'POST',
       headers: getH({ 'Prefer': 'return=representation' }),
-      body: JSON.stringify({ id: U.id, email: U.email, name: nm, exam_target: EX, plan: 'free', trial_ends_at: trialEnd, xp: 0, level: 1 })
+      body: JSON.stringify({ id: U.id, email: U.email, name: nm, exam_target: EX, plan: 'free', trial_ends_at: trialEnd, xp: 0, level: 1, streak_shields: 2, current_streak: 0 })
     });
   } catch (e) {}
-  P = { id: U.id, email: U.email, name: nm, exam_target: EX, plan: 'free', xp: 0, level: 1, trial_ends_at: trialEnd };
+  P = { id: U.id, email: U.email, name: nm, exam_target: EX, plan: 'free', xp: 0, level: 1, trial_ends_at: trialEnd, streak_shields: 2, current_streak: 0 };
   toast('Welcome! 7-day Pro trial is active 🎉', 'ok');
-  await renderHM();
-  go('hm');
+  await renderHM(); go('hm');
 }
 
 // ── TRIAL ──
@@ -590,6 +523,11 @@ async function renderHM() {
   var seed = U ? U.id : nm;
   var q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
   var xp = P && P.xp ? parseInt(P.xp) : 0;
+  var shields = (P && P.streak_shields !== undefined) ? parseInt(P.streak_shields) : 2;
+  var initStreak = (P && P.current_streak) ? parseInt(P.current_streak) : 0;
+  var sColor  = shields === 0 ? '#FDA4AF' : shields <= 1 ? '#FCD34D' : '#6EE7B7';
+  var sBg     = shields === 0 ? 'rgba(244,63,94,.08)' : shields <= 1 ? 'rgba(245,158,11,.08)' : 'rgba(16,185,129,.08)';
+  var sBorder = shields === 0 ? 'rgba(244,63,94,.25)' : shields <= 1 ? 'rgba(245,158,11,.25)' : 'rgba(16,185,129,.25)';
   var trialHTML = '';
   if (P && P.trial_ends_at) {
     var diff = Math.ceil((new Date(P.trial_ends_at) - new Date()) / (1000 * 60 * 60 * 24));
@@ -606,8 +544,13 @@ async function renderHM() {
     + '<div class="nav-right"><div class="user-av" onclick="go(\'pf\')"><img src="' + avUrl(seed) + '" alt=""/></div></div>'
     + '</div>'
     + '<div class="hbody">'
-    + '<div class="greet"><div><div class="greet-sub">Good to see you 👋</div><div class="greet-name">' + esc(nm) + '</div></div>'
-    + '<div class="streak-chip"><svg width="13" height="13" viewBox="0 0 24 24" fill="#FCD34D"><path d="M12 2c0 0-6 6-6 12a6 6 0 0 0 12 0c0-6-6-12-6-12z"/></svg><span id="hst">0</span> days</div></div>'
+    + '<div class="greet">'
+    + '<div><div class="greet-sub">Good to see you 👋</div><div class="greet-name">' + esc(nm) + '</div></div>'
+    + '<div class="greet-chips">'
+    + '<div class="streak-chip"><svg width="13" height="13" viewBox="0 0 24 24" fill="#FCD34D"><path d="M12 2c0 0-6 6-6 12a6 6 0 0 0 12 0c0-6-6-12-6-12z"/></svg><span id="hst">' + initStreak + '</span> days</div>'
+    + '<div class="shield-chip" id="shield-chip" onclick="showShieldInfo()" style="background:' + sBg + ';border-color:' + sBorder + ';color:' + sColor + '">🛡️ <span id="h-shields">' + shields + '</span></div>'
+    + '</div>'
+    + '</div>'
     + trialHTML
     + '<div class="xp-bar-wrap"><div class="xp-top"><div class="level-badge"><span id="level-icon">⚡</span><span class="level-name" id="level-nm">Rookie</span></div><span class="xp-count" id="xp-count">' + esc(String(xp)) + ' / 100 XP</span></div><div class="xp-track"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div></div>'
     + '<div class="qhero"><div class="qhero-orb1"></div><div class="qhero-orb2"></div>'
@@ -623,22 +566,10 @@ async function renderHM() {
     + '</div>'
     + '<div style="font-size:15px;font-weight:800;margin-bottom:12px">Quick Practice</div>'
     + '<div class="quick-actions-grid">'
-    + '<div class="qa-card" onclick="renderPYQ()" style="background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(99,102,241,.05));border-color:rgba(99,102,241,.25)">'
-    + '<div class="qa-icon" style="background:rgba(99,102,241,.15)">📋</div>'
-    + '<div class="qa-nm">PYQ Practice</div><div class="qa-info">Real past papers</div>'
-    + '</div>'
-    + '<div class="qa-card" onclick="renderMG()" style="background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(16,185,129,.04));border-color:rgba(16,185,129,.2)">'
-    + '<div class="qa-icon" style="background:rgba(16,185,129,.15)">⚡</div>'
-    + '<div class="qa-nm">AI Generator</div><div class="qa-info">From your notes</div>'
-    + '</div>'
-    + '<div class="qa-card" onclick="bQz()" style="background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.04));border-color:rgba(245,158,11,.2)">'
-    + '<div class="qa-icon" style="background:rgba(245,158,11,.15)">🎯</div>'
-    + '<div class="qa-nm">Daily Quiz</div><div class="qa-info">Auto-generated MCQs</div>'
-    + '</div>'
-    + '<div class="qa-card" onclick="go(\'lb\')" style="background:linear-gradient(135deg,rgba(34,211,238,.1),rgba(34,211,238,.04));border-color:rgba(34,211,238,.2)">'
-    + '<div class="qa-icon" style="background:rgba(34,211,238,.12)">🏆</div>'
-    + '<div class="qa-nm">Leaderboard</div><div class="qa-info">Today\'s rankings</div>'
-    + '</div>'
+    + '<div class="qa-card" onclick="renderPYQ()" style="background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(99,102,241,.05));border-color:rgba(99,102,241,.25)"><div class="qa-icon" style="background:rgba(99,102,241,.15)">📋</div><div class="qa-nm">PYQ Practice</div><div class="qa-info">Real past papers</div></div>'
+    + '<div class="qa-card" onclick="renderMG()" style="background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(16,185,129,.04));border-color:rgba(16,185,129,.2)"><div class="qa-icon" style="background:rgba(16,185,129,.15)">⚡</div><div class="qa-nm">AI Generator</div><div class="qa-info">From your notes</div></div>'
+    + '<div class="qa-card" onclick="bQz()" style="background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.04));border-color:rgba(245,158,11,.2)"><div class="qa-icon" style="background:rgba(245,158,11,.15)">🎯</div><div class="qa-nm">Daily Quiz</div><div class="qa-info">Auto-generated MCQs</div></div>'
+    + '<div class="qa-card" onclick="go(\'lb\')" style="background:linear-gradient(135deg,rgba(34,211,238,.1),rgba(34,211,238,.04));border-color:rgba(34,211,238,.2)"><div class="qa-icon" style="background:rgba(34,211,238,.12)">🏆</div><div class="qa-nm">Leaderboard</div><div class="qa-info">Today\'s rankings</div></div>'
     + '</div>'
     + '<div class="quote"><div class="q-tag">Daily Fuel</div><div class="q-txt">"' + esc(q[0]) + '"</div><div class="q-by">— ' + esc(q[1]) + '</div></div>'
     + '</div>'
@@ -658,16 +589,6 @@ async function renderHM() {
     var avg = at.reduce(function (s, a) { return s + parseFloat(a.accuracy_pct || 0); }, 0) / at.length;
     var hac = document.getElementById('hac'); if (hac) hac.textContent = Math.round(avg) + '%';
     var hqz = document.getElementById('hqz'); if (hqz) hqz.textContent = at.length;
-    var streak = 0;
-    var today = new Date(); today.setHours(0, 0, 0, 0);
-    var days = [...new Set(at.map(function (a) { return new Date(a.attempted_at).toDateString(); }))];
-    for (var i = 0; i < days.length; i++) {
-      var d = new Date(days[i]); d.setHours(0, 0, 0, 0);
-      var expected = new Date(today); expected.setDate(today.getDate() - i);
-      if (d.getTime() === expected.getTime()) streak++;
-      else break;
-    }
-    var hst = document.getElementById('hst'); if (hst) hst.textContent = streak;
   });
   var td = new Date().toISOString().split('T')[0];
   api('quizzes', '?scheduled_for=eq.' + td + '&is_published=eq.true&limit=1').then(function (qz) {
@@ -675,6 +596,7 @@ async function renderHM() {
     var htl = document.getElementById('htl'); if (htl) htl.textContent = qz[0].title;
     var hp = document.getElementById('hpill'); if (hp) hp.textContent = qz[0].exam_target;
   });
+  setTimeout(checkStreakHealth, 300);
 }
 
 // ── QUIZ ──
@@ -688,8 +610,7 @@ async function bQz() {
   var qq = await api('questions', '?quiz_id=eq.' + qz[0].id + '&limit=10');
   if (!qq || !qq.length) { toast('Questions loading soon!'); if (b) { b.disabled = false; b.textContent = 'Start Today\'s Quiz →'; } return; }
   QS = qq; QI = 0; SC = 0; TL = 600; T0 = Date.now(); chatCtx = null;
-  isGenQuiz = false;
-  renderQZ(); rQ(); sTmr();
+  isGenQuiz = false; renderQZ(); rQ(); sTmr();
 }
 function renderQZ() {
   var el = document.getElementById('qz');
@@ -723,7 +644,6 @@ function rQ() {
   ['A', 'B', 'C', 'D'].forEach(function (lt, i) {
     var v = [q.option_a, q.option_b, q.option_c, q.option_d];
     var b = document.createElement('button'); b.className = 'opt';
-    // Use textContent for opt-l, textContent for option text — no innerHTML on user data
     var lDiv = document.createElement('div'); lDiv.className = 'opt-l'; lDiv.textContent = lt;
     var span = document.createElement('span'); span.textContent = v[i] || '';
     b.appendChild(lDiv); b.appendChild(span);
@@ -759,13 +679,19 @@ async function eQz() {
   var acc = Math.round(SC / QS.length * 100);
   var xpGained = SC * 10 + (QS.length - SC) * 2;
   await ins('user_attempts', { user_id: U.id, quiz_id: isGenQuiz ? null : QS[0].quiz_id, score: SC, total_questions: QS.length, accuracy_pct: acc, time_taken_sec: sec, is_generated: isGenQuiz });
-  // FIX #2: XP written server-side via RPC — cannot be manipulated client-side
-  await fetch(SB + '/rest/v1/rpc/increment_xp', {
-    method: 'POST',
-    headers: getH(),
-    body: JSON.stringify({ user_uuid: U.id, xp_to_add: xpGained })
-  });
+  await fetch(SB + '/rest/v1/rpc/increment_xp', { method: 'POST', headers: getH(), body: JSON.stringify({ user_uuid: U.id, xp_to_add: xpGained }) });
   if (P) P.xp = (P.xp ? parseInt(P.xp) : 0) + xpGained;
+
+  // ── Update streak ──
+  var todayDate  = new Date().toISOString().split('T')[0];
+  var prevDate   = P ? P.last_quiz_date : null;
+  var prevStreak = P ? (parseInt(P.current_streak) || 0) : 0;
+  var yest = new Date(); yest.setDate(yest.getDate() - 1);
+  var yestDate = yest.toISOString().split('T')[0];
+  var newStreak = (!prevDate || prevDate < yestDate) ? 1 : (prevDate === yestDate) ? prevStreak + 1 : prevStreak || 1;
+  await patch('users', '?id=eq.' + U.id, { current_streak: newStreak, last_quiz_date: todayDate });
+  if (P) { P.current_streak = newStreak; P.last_quiz_date = todayDate; }
+
   var beatTxt = isGenQuiz ? 'Custom quiz complete! 🌟' : 'First attempt today! 🌟';
   if (!isGenQuiz) {
     var all = await api('user_attempts', '?quiz_id=eq.' + QS[0].quiz_id);
@@ -774,12 +700,10 @@ async function eQz() {
       beatTxt = 'Beat ' + Math.round(beat / (all.length - 1) * 100) + '% today';
     }
   }
-  var wasGen = isGenQuiz;
-  isGenQuiz = false;
+  var wasGen = isGenQuiz; isGenQuiz = false;
   renderRS(SC, acc, sec, xpGained, beatTxt, wasGen);
   if (SC >= Math.ceil(QS.length * 0.7)) confetti();
-  chatCtx = null;
-  go('rs');
+  chatCtx = null; go('rs');
 }
 function sTmr() {
   clearInterval(tmr);
@@ -789,7 +713,7 @@ function sTmr() {
     var s = (TL % 60).toString().padStart(2, '0');
     var te = document.getElementById('qtm'); if (te) te.textContent = m + ':' + s;
     if (TL <= 0) { clearInterval(tmr); eQz(); }
-    if (TL <= 60 && te) te.style.color = '#F43F5E';
+    if (TL <= 60 && te) { te.style.color = '#F43F5E'; try { navigator.vibrate(200); } catch (e) {} }
   }, 1000);
 }
 
@@ -801,8 +725,7 @@ function renderRS(score, acc, sec, xpGained, beatTxt, wasGen) {
   el.innerHTML =
     '<div id="conf-wrap"></div>'
     + '<div class="res-wrap">'
-    + '<div class="res-main">'
-    + '<div class="res-glow"></div>'
+    + '<div class="res-main"><div class="res-glow"></div>'
     + '<div class="res-av"><img src="' + avUrl(seed) + '" alt=""/></div>'
     + '<div class="res-score">' + score + '<span>/10</span></div>'
     + '<div class="res-title">' + esc(title) + '</div>'
@@ -831,10 +754,8 @@ async function renderLB() {
   var el = document.getElementById('lb');
   var seed = U ? U.id : 'user';
   el.innerHTML =
-    '<div class="nav">'
-    + '<div class="nav-logo">' + LOGO_SVG + '<div class="nav-logo-text">Micro <span>Mock</span></div></div>'
-    + '<div class="user-av" onclick="go(\'pf\')"><img src="' + avUrl(seed) + '" alt=""/></div>'
-    + '</div>'
+    '<div class="nav"><div class="nav-logo">' + LOGO_SVG + '<div class="nav-logo-text">Micro <span>Mock</span></div></div>'
+    + '<div class="user-av" onclick="go(\'pf\')"><img src="' + avUrl(seed) + '" alt=""/></div></div>'
     + '<div class="lbody">'
     + '<div style="margin-bottom:16px"><div class="h2" style="margin-bottom:4px">Leaderboard</div><div class="body">Today\'s top performers</div></div>'
     + '<div class="my-rank-box" id="my-rank-box" style="display:none"><div style="font-size:12px;color:var(--t3);margin-bottom:4px">Your Position Today</div><div style="font-size:28px;font-weight:900;background:linear-gradient(135deg,#6366F1,#22D3EE);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent" id="my-rank-n">#--</div></div>'
@@ -849,8 +770,7 @@ async function renderLB() {
     + '<div class="bn" onclick="go(\'pf\')">' + NAV_SVG.profile + 'Profile</div>'
     + '</div>';
   var data = await api('daily_leaderboard', '?limit=20&order=rank.asc');
-  var list = document.getElementById('lbl');
-  var pod = document.getElementById('podium');
+  var list = document.getElementById('lbl'), pod = document.getElementById('podium');
   if (!data || !data.length) {
     if (pod) pod.style.display = 'none';
     if (list) list.innerHTML = '<div style="text-align:center;padding:56px 16px"><div style="font-size:40px;margin-bottom:14px">🏆</div><div style="font-size:17px;font-weight:800;margin-bottom:6px">No one yet today</div><div style="font-size:13px;color:var(--t3)">Be the first to complete today\'s quiz!</div><button class="btn btn-p" style="margin-top:16px;max-width:200px" onclick="renderHM()">Start Quiz →</button></div>';
@@ -891,10 +811,10 @@ async function renderLB() {
 // ── PYQ ──
 var pyqExam = 'UPSC';
 var PYQ_EXAMS = [
-  { id: 'UPSC',    label: 'UPSC Prelims',   icon: '🏛' },
-  { id: 'SSC',     label: 'SSC CGL/CHSL',   icon: '📋' },
-  { id: 'Banking', label: 'IBPS PO/Clerk',  icon: '🏦' },
-  { id: 'RBI',     label: 'RBI Grade B',    icon: '💰' }
+  { id: 'UPSC', label: 'UPSC Prelims', icon: '🏛' },
+  { id: 'SSC', label: 'SSC CGL/CHSL', icon: '📋' },
+  { id: 'Banking', label: 'IBPS PO/Clerk', icon: '🏦' },
+  { id: 'RBI', label: 'RBI Grade B', icon: '💰' }
 ];
 async function renderPYQ() {
   go('pyq');
@@ -903,8 +823,7 @@ async function renderPYQ() {
     '<div class="nav">'
     + '<button onclick="renderHM()" style="background:none;border:none;color:var(--t3);font-size:14px;cursor:pointer;font-weight:700;font-family:inherit;display:flex;align-items:center;gap:5px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>Back</button>'
     + '<div style="font-size:15px;font-weight:800">Previous Year Questions</div>'
-    + '<div style="width:40px"></div>'
-    + '</div>'
+    + '<div style="width:40px"></div></div>'
     + '<div class="pyq-body">'
     + '<div class="pyq-hero"><div class="pyq-hero-t">📚 PYQ Practice</div><div class="pyq-hero-s">Practice real questions from past exams</div></div>'
     + '<div class="pyq-exam-tabs" id="pyq-exam-tabs">'
@@ -931,45 +850,31 @@ async function selectPYQExam(exam) {
   loadPYQSets(exam);
 }
 async function loadPYQSets(exam) {
-  var wrap = document.getElementById('pyq-sets-wrap');
-  if (!wrap) return;
+  var wrap = document.getElementById('pyq-sets-wrap'); if (!wrap) return;
   wrap.innerHTML = '<div class="pyq-loading"><div style="font-size:13px;color:var(--t3)">Loading...</div></div>';
   var data = await api('questions', '?source_tag=eq.pyq&pyq_exam=eq.' + exam + '&select=year,pyq_exam&order=year.desc');
   if (!data || !data.length) {
-    wrap.innerHTML = '<div class="pyq-empty">'
-      + '<div style="font-size:48px;margin-bottom:14px">📭</div>'
-      + '<div style="font-size:16px;font-weight:800;margin-bottom:8px">No PYQs yet for ' + esc(exam) + '</div>'
-      + '<div style="font-size:13px;color:var(--t3);line-height:1.7;max-width:260px;margin:0 auto">Real previous year questions will appear here once uploaded.</div>'
-      + '</div>';
+    wrap.innerHTML = '<div class="pyq-empty"><div style="font-size:48px;margin-bottom:14px">📭</div><div style="font-size:16px;font-weight:800;margin-bottom:8px">No PYQs yet for ' + esc(exam) + '</div><div style="font-size:13px;color:var(--t3);line-height:1.7;max-width:260px;margin:0 auto">Real previous year questions will appear here once uploaded.</div></div>';
     return;
   }
   var years = {};
-  data.forEach(function (q) {
-    var yr = q.year || 'Unknown';
-    if (!years[yr]) years[yr] = 0;
-    years[yr]++;
-  });
-  var html = '<div style="margin-bottom:16px"><div style="font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--t3);margin-bottom:12px">Select Year</div>'
-    + '<div class="pyq-sets-list">';
+  data.forEach(function (q) { var yr = q.year || 'Unknown'; if (!years[yr]) years[yr] = 0; years[yr]++; });
+  var html = '<div style="margin-bottom:16px"><div style="font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--t3);margin-bottom:12px">Select Year</div><div class="pyq-sets-list">';
   Object.keys(years).sort(function (a, b) { return b - a; }).forEach(function (yr) {
     html += '<div class="pyq-set-card" onclick="startPYQQuiz(\'' + esc(exam) + '\',' + parseInt(yr) + ')">'
       + '<div class="pyq-set-icon">📋</div>'
       + '<div class="pyq-set-info"><div class="pyq-set-title">' + esc(exam) + ' ' + esc(String(yr)) + '</div><div class="pyq-set-meta">' + esc(String(years[yr])) + ' questions</div></div>'
-      + '<div class="pyq-set-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg></div>'
-      + '</div>';
+      + '<div class="pyq-set-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg></div></div>';
   });
-  html += '</div></div>';
-  wrap.innerHTML = html;
+  wrap.innerHTML = html + '</div></div>';
 }
 async function startPYQQuiz(exam, year) {
   toast('Loading ' + exam + ' ' + year + ' questions...');
   var questions = await api('questions', '?source_tag=eq.pyq&pyq_exam=eq.' + exam + '&year=eq.' + year + '&limit=25');
   if (!questions || !questions.length) { toast('No questions found', 'err'); return; }
-  QS = questions; QI = 0; SC = 0;
-  TL = questions.length * 72;
+  QS = questions; QI = 0; SC = 0; TL = questions.length * 72;
   T0 = Date.now(); chatCtx = null; isGenQuiz = true;
-  renderPYQQuiz(exam, year);
-  rQ(); sTmr();
+  renderPYQQuiz(exam, year); rQ(); sTmr();
 }
 function renderPYQQuiz(exam, year) {
   var el = document.getElementById('qz');
@@ -977,8 +882,7 @@ function renderPYQQuiz(exam, year) {
     '<div class="nav">'
     + '<button onclick="if(confirm(\'Quit? Progress lost.\')) {clearInterval(tmr);renderPYQ()}" style="background:none;border:none;color:var(--t3);font-size:14px;cursor:pointer;font-weight:700;font-family:inherit;display:flex;align-items:center;gap:5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Quit</button>'
     + '<div class="q-ctr" id="qct">Q 1 / ' + QS.length + '</div>'
-    + '<div class="q-timer"><div class="tdot"></div><span id="qtm">--:--</span></div>'
-    + '</div>'
+    + '<div class="q-timer"><div class="tdot"></div><span id="qtm">--:--</span></div></div>'
     + '<div class="pyq-quiz-banner"><span class="pyq-quiz-tag">📋 ' + esc(exam) + ' ' + esc(String(year)) + '</span></div>'
     + '<div class="qbody">'
     + '<div class="prog-track"><div class="prog-fill" id="qpr" style="width:' + (1 / QS.length * 100) + '%"></div></div>'
@@ -1015,24 +919,18 @@ async function renderPF() {
     + '</div>'
     + '<div class="label" style="margin-bottom:11px">Proof of Preparation Card</div>'
     + '<div class="pop-wrap">'
-    + (isProOrTrial ? '' : '<div class="pop-blur">'
-      + '<div class="pop-lock-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#818CF8" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>'
-      + '<div style="font-size:17px;font-weight:800">PoP Card Locked</div>'
-      + '<div style="font-size:13px;color:var(--t2);text-align:center;max-width:220px;line-height:1.6">Start your free trial to unlock and share your preparation identity card</div>'
-      + '<button class="btn btn-trial btn-sm" onclick="startTrial()">Start 7-Day Trial Free</button>'
-      + '</div>')
+    + (isProOrTrial ? '' : '<div class="pop-blur"><div class="pop-lock-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#818CF8" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><div style="font-size:17px;font-weight:800">PoP Card Locked</div><div style="font-size:13px;color:var(--t2);text-align:center;max-width:220px;line-height:1.6">Start your free trial to unlock and share your preparation identity card</div><button class="btn btn-trial btn-sm" onclick="startTrial()">Start 7-Day Trial Free</button></div>')
     + '<div class="pop-inner">'
     + '<div class="pop-hd"><div class="pop-av"><img src="' + avUrl(seed) + '" alt=""/></div><div><div class="pop-nm">' + esc((P && P.name) || 'Aspirant') + '</div><div class="pop-sub" id="pop-sub">Preparing for ' + esc((P && P.exam_target) || 'UPSC') + '</div></div></div>'
     + '<div class="pop-grid"><div class="pop-s"><div class="pop-sn" id="pd">0</div><div class="pop-sl">Days</div></div><div class="pop-s"><div class="pop-sn" id="pa">0%</div><div class="pop-sl">Accuracy</div></div><div class="pop-s"><div class="pop-sn" id="pq">0</div><div class="pop-sl">Quizzes</div></div></div>'
     + '<div class="pop-bars"><div class="pb-row"><div class="pb-hd"><span>Accuracy</span><span id="gs-p">0%</span></div><div class="pb-bg"><div class="pb-fg" id="gs-b" style="width:0%"></div></div></div><div class="pb-row"><div class="pb-hd"><span>Readiness</span><span id="rd-p">0%</span></div><div class="pb-bg"><div class="pb-fg" id="rd-b" style="width:0%;background:linear-gradient(90deg,#10B981,#22D3EE)"></div></div></div></div>'
     + '<div class="pop-ft"><span style="font-weight:700">micro-mock.in</span><div class="ready-badge" id="pop-ready">0% Ready</div></div>'
-    + '</div>'
-    + '</div>'
+    + '</div></div>'
     + '<div class="up-card">'
     + '<div class="up-t">Upgrade to Pro</div>'
-    + '<div class="up-s">Unlock your full preparation identity. Your family deserves to see your hard work.</div>'
+    + '<div class="up-s">Most UPSC qualifiers practiced 100+ questions per week. Pro removes every limit standing between you and that number.</div>'
     + '<div class="up-feats">'
-    + '<div class="uf"><div class="uf-ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Ranked leaderboard</div>'
+    + '<div class="uf"><div class="uf-ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>4 Streak Shields per month</div>'
     + '<div class="uf"><div class="uf-ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Shareable PoP Card</div>'
     + '<div class="uf"><div class="uf-ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Unlimited AI questions</div>'
     + '<div class="uf"><div class="uf-ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Full performance history</div>'
@@ -1047,8 +945,7 @@ async function renderPF() {
     + '<div class="gen-hist-section" style="margin-top:18px">'
     + '<div class="gen-hist-hdr"><div class="gen-hist-title">⚡ Generated Quiz History</div><button class="btn-sm btn-g" onclick="renderMG()" style="font-size:11px;padding:6px 12px;width:auto">+ New</button></div>'
     + '<div class="gen-hist-list" id="gen-hist-list"><div style="text-align:center;padding:20px;color:var(--t3);font-size:13px">Loading...</div></div>'
-    + '</div>'
-    + '</div>'
+    + '</div></div>'
     + '<div class="bnav">'
     + '<div class="bn" onclick="renderHM()">' + NAV_SVG.home + 'Home</div>'
     + '<div class="bn" onclick="renderMG()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>Generate</div>'
@@ -1071,8 +968,7 @@ async function renderPF() {
     var pr = document.getElementById('pop-ready'); if (pr) pr.textContent = Math.min(ar, 100) + '% Ready';
   });
   api('user_attempts', '?user_id=eq.' + U.id + '&is_generated=eq.true&order=created_at.desc&limit=10').then(function (hist) {
-    var histEl = document.getElementById('gen-hist-list');
-    if (!histEl) return;
+    var histEl = document.getElementById('gen-hist-list'); if (!histEl) return;
     if (!hist || !hist.length) {
       histEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--t3);font-size:13px">No generated quizzes yet.<br/>Tap + New to try the MCQ Generator!</div>';
       return;
@@ -1081,16 +977,9 @@ async function renderPF() {
       var date = new Date(a.created_at);
       var dateStr = date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
       var emoji = a.accuracy_pct >= 70 ? '🏆' : a.accuracy_pct >= 50 ? '📈' : '📚';
-      return '<div class="gen-hist-card">'
-        + '<div class="gen-hist-icon">' + emoji + '</div>'
-        + '<div class="gen-hist-info">'
-        + '<div class="gen-hist-name">Generated Quiz</div>'
-        + '<div class="gen-hist-meta">' + esc(dateStr) + ' · ' + esc(String(a.total_questions)) + ' Qs · ' + esc(String(a.time_taken_sec)) + 's</div>'
-        + '</div>'
-        + '<div class="gen-hist-score">'
-        + '<div class="gen-hist-val">' + esc(String(a.score)) + '/' + esc(String(a.total_questions)) + '</div>'
-        + '<div class="gen-hist-lbl">' + Math.round(a.accuracy_pct) + '%</div>'
-        + '</div></div>';
+      return '<div class="gen-hist-card"><div class="gen-hist-icon">' + emoji + '</div>'
+        + '<div class="gen-hist-info"><div class="gen-hist-name">Generated Quiz</div><div class="gen-hist-meta">' + esc(dateStr) + ' · ' + esc(String(a.total_questions)) + ' Qs · ' + esc(String(a.time_taken_sec)) + 's</div></div>'
+        + '<div class="gen-hist-score"><div class="gen-hist-val">' + esc(String(a.score)) + '/' + esc(String(a.total_questions)) + '</div><div class="gen-hist-lbl">' + Math.round(a.accuracy_pct) + '%</div></div></div>';
     }).join('');
   });
 }
@@ -1127,9 +1016,7 @@ function updateAiCount() {
     if (badge) badge.textContent = aiLeft + ' left today';
   }
 }
-function openChat() {
-  document.getElementById('chat-drawer').classList.add('open');
-}
+function openChat() { document.getElementById('chat-drawer').classList.add('open'); }
 function openChatWithContext() {
   if (chatCtx) {
     var cb = document.getElementById('ctx-banner'); if (cb) cb.style.display = 'flex';
@@ -1137,18 +1024,12 @@ function openChatWithContext() {
   }
   openChat();
 }
-function closeChat() {
-  document.getElementById('chat-drawer').classList.remove('open');
-}
-function sendQuick(msg) {
-  var inp = document.getElementById('chat-inp'); if (inp) inp.value = msg;
-  sendMsg();
-}
+function closeChat() { document.getElementById('chat-drawer').classList.remove('open'); }
+function sendQuick(msg) { var inp = document.getElementById('chat-inp'); if (inp) inp.value = msg; sendMsg(); }
 async function sendMsg() {
   if (sending) return;
   var inp = document.getElementById('chat-inp');
-  var msg = inp ? inp.value.trim() : '';
-  if (!msg) return;
+  var msg = inp ? inp.value.trim() : ''; if (!msg) return;
   if (aiLeft <= 0 && (!P || P.plan !== 'pro')) {
     toast('3 free questions used today. Upgrade for unlimited!', 'err');
     setTimeout(function () { window.open('https://rzp.io/rzp/zJ6jF8B', '_blank'); }, 1200);
@@ -1159,8 +1040,7 @@ async function sendMsg() {
   var qc = document.getElementById('quick-chips'); if (qc) qc.style.display = 'none';
   var cb = document.getElementById('ctx-banner'); if (cb) cb.style.display = 'none';
   var typId = 'typ-' + Date.now();
-  addTyping(typId);
-  sending = true;
+  addTyping(typId); sending = true;
   var sendBtn = document.getElementById('chat-send'); if (sendBtn) sendBtn.disabled = true;
   var sys = 'You are a helpful AI assistant for Indian government exam prep (UPSC, SSC, Banking, RBI). Be concise, accurate, encouraging. Keep answers under 150 words. Use simple language.';
   if (chatCtx) sys += '\n\nCurrent question: ' + chatCtx.question + '\nCorrect answer: ' + chatCtx.answer + '\nExplanation: ' + chatCtx.explanation + '\nUser selected: ' + chatCtx.userAnswer;
@@ -1172,66 +1052,190 @@ async function sendMsg() {
       body: JSON.stringify({ messages: msgs, system: sys })
     });
     removeTyping(typId);
-    if (!r.ok) {
-      addMsg('ai', 'Could not connect to AI. Check your internet and try again.');
-    } else {
+    if (!r.ok) { addMsg('ai', 'Could not connect to AI. Check your internet and try again.'); }
+    else {
       var d = await r.json();
       var reply = d.reply || 'Sorry, could not answer right now.';
       addMsg('ai', reply);
       chatMsgs.push({ role: 'user', content: msg }, { role: 'assistant', content: reply });
       if (P && P.plan !== 'pro') { aiLeft = Math.max(0, aiLeft - 1); updateAiCount(); }
     }
-  } catch (e) {
-    removeTyping(typId);
-    addMsg('ai', 'Something went wrong. Please try again.');
-  } finally {
+  } catch (e) { removeTyping(typId); addMsg('ai', 'Something went wrong. Please try again.'); }
+  finally {
     sending = false;
-    var sendBtn2 = document.getElementById('chat-send');
-    if (sendBtn2) sendBtn2.disabled = false;
+    var sendBtn2 = document.getElementById('chat-send'); if (sendBtn2) sendBtn2.disabled = false;
   }
 }
-
-// SECURITY: addMsg uses DOM methods — no innerHTML on user/AI content
 function addMsg(role, txt) {
-  var msgs = document.getElementById('chat-msgs');
-  if (!msgs) return;
-  var div = document.createElement('div');
-  div.className = 'msg ' + role;
-
-  var avDiv = document.createElement('div');
-  avDiv.className = 'msg-av ' + role;
+  var msgs = document.getElementById('chat-msgs'); if (!msgs) return;
+  var div = document.createElement('div'); div.className = 'msg ' + role;
+  var avDiv = document.createElement('div'); avDiv.className = 'msg-av ' + role;
   if (role === 'ai') {
     avDiv.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/></svg>';
   } else {
-    var img = document.createElement('img');
-    img.src = avUrl(U ? U.id : 'user');
-    img.alt = '';
-    avDiv.appendChild(img);
+    var img = document.createElement('img'); img.src = avUrl(U ? U.id : 'user'); img.alt = ''; avDiv.appendChild(img);
   }
-
-  var bubble = document.createElement('div');
-  bubble.className = 'msg-bubble';
-  // Split on newlines and insert text nodes + <br> — never innerHTML
+  var bubble = document.createElement('div'); bubble.className = 'msg-bubble';
   txt.split('\n').forEach(function (line, i, arr) {
     bubble.appendChild(document.createTextNode(line));
     if (i < arr.length - 1) bubble.appendChild(document.createElement('br'));
   });
-
-  div.appendChild(avDiv);
-  div.appendChild(bubble);
-  msgs.appendChild(div);
+  div.appendChild(avDiv); div.appendChild(bubble); msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
 }
-
 function addTyping(id) {
   var msgs = document.getElementById('chat-msgs'); if (!msgs) return;
-  var div = document.createElement('div');
-  div.className = 'msg ai';
-  div.id = id;
+  var div = document.createElement('div'); div.className = 'msg ai'; div.id = id;
   div.innerHTML = '<div class="msg-av ai"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/></svg></div><div class="msg-bubble" style="padding:0"><div class="msg-typing"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>';
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
+  msgs.appendChild(div); msgs.scrollTop = msgs.scrollHeight;
 }
-function removeTyping(id) {
-  var el = document.getElementById(id); if (el) el.remove();
+function removeTyping(id) { var el = document.getElementById(id); if (el) el.remove(); }
+
+// ═══════════════════════════════════════════
+// ── STREAK SHIELD SYSTEM ──
+// ═══════════════════════════════════════════
+
+async function checkStreakHealth() {
+  if (!U || !P) return;
+  var shields    = parseInt(P.streak_shields) || 0;
+  var streak     = parseInt(P.current_streak) || 0;
+  var lastQuiz   = P.last_quiz_date;
+  if (!lastQuiz || streak === 0) return;
+
+  var today      = new Date(); today.setHours(0, 0, 0, 0);
+  var todayStr   = today.toISOString().split('T')[0];
+  var yesterday  = new Date(today); yesterday.setDate(today.getDate() - 1);
+  var yestStr    = yesterday.toISOString().split('T')[0];
+  var twoDaysAgo = new Date(today); twoDaysAgo.setDate(today.getDate() - 2);
+  var twoDayStr  = twoDaysAgo.toISOString().split('T')[0];
+
+  // CASE 1: Missed yesterday — shield saves or streak breaks
+  if (lastQuiz === twoDayStr && streak >= 2) {
+    if (shields > 0) {
+      var newShields = shields - 1;
+      await patch('users', '?id=eq.' + U.id, { streak_shields: newShields });
+      P.streak_shields = newShields;
+      updateShieldUI(newShields);
+      showShieldUsedBanner(streak, newShields);
+    } else {
+      var broken = streak;
+      await patch('users', '?id=eq.' + U.id, { current_streak: 0 });
+      P.current_streak = 0;
+      updateStreakUI(0);
+      setTimeout(function () { showStreakBrokenModal(broken); }, 700);
+    }
+    return;
+  }
+
+  // CASE 2: Streak at risk — played yesterday, not yet today
+  if (lastQuiz === yestStr && streak >= 3 && lastQuiz !== todayStr) {
+    showStreakRiskBanner(streak, shields);
+  }
+
+  // CASE 3: Day 4 or 5 milestone — paywall shown once
+  if ((streak === 4 || streak === 5) && !P.shield_promo_seen && P.plan !== 'pro') {
+    await patch('users', '?id=eq.' + U.id, { shield_promo_seen: true });
+    P.shield_promo_seen = true;
+    setTimeout(function () { showStreakPromoModal(streak); }, 1500);
+  }
+}
+
+function showShieldUsedBanner(streak, shieldsLeft) {
+  var hbody = document.querySelector('.hbody'); if (!hbody) return;
+  var div = document.createElement('div');
+  div.className = 'shield-used-banner';
+  div.innerHTML =
+    '<div class="sub-left"><span class="sub-icon">🛡️</span>'
+    + '<div><div class="sub-t">Shield Used — Streak Saved!</div>'
+    + '<div class="sub-s">Your ' + streak + '-day streak is safe. ' + shieldsLeft + ' shield' + (shieldsLeft !== 1 ? 's' : '') + ' remaining.</div>'
+    + '</div></div>'
+    + (shieldsLeft === 0 ? '<button class="sub-btn" onclick="window.open(\'https://rzp.io/rzp/zJ6jF8B\',\'_blank\')">Get Pro ↗</button>' : '');
+  hbody.insertBefore(div, hbody.firstChild);
+  setTimeout(function () {
+    div.style.opacity = '0'; div.style.maxHeight = '0';
+    setTimeout(function () { div.remove(); }, 450);
+  }, 6000);
+}
+
+function showStreakRiskBanner(streak, shields) {
+  if (document.getElementById('streak-risk-banner')) return;
+  var hbody = document.querySelector('.hbody'); if (!hbody) return;
+  var div = document.createElement('div');
+  div.id = 'streak-risk-banner'; div.className = 'streak-risk-banner';
+  div.innerHTML =
+    '<div class="srb-left"><span style="font-size:22px">⚠️</span>'
+    + '<div><div class="srb-t">Your ' + streak + '-day streak is at risk!</div>'
+    + '<div class="srb-s">Play today · ' + shields + ' 🛡️ shield' + (shields !== 1 ? 's' : '') + ' remaining</div>'
+    + '</div></div>'
+    + '<button class="srb-btn" onclick="bQz()">Play Now</button>';
+  var greet = hbody.querySelector('.greet');
+  if (greet && greet.nextSibling) hbody.insertBefore(div, greet.nextSibling);
+  else hbody.insertBefore(div, hbody.firstChild);
+}
+
+function showStreakBrokenModal(oldStreak) {
+  var m = document.createElement('div');
+  m.className = 'streak-modal-overlay';
+  m.innerHTML =
+    '<div class="streak-modal"><div class="sm-orb"></div>'
+    + '<div class="sm-emoji">💔</div>'
+    + '<div class="sm-title">Your ' + oldStreak + '-day streak is gone</div>'
+    + '<div class="sm-sub">You missed yesterday with no shields left. Pro members never lose their streaks — 4 shields automatically replenish every month.</div>'
+    + '<div class="sm-shields-row"><div class="sm-shield broken">🛡️</div><div class="sm-shield broken">🛡️</div><div class="sm-shield broken">🛡️</div><div class="sm-shield broken">🛡️</div></div>'
+    + '<div class="sm-shields-lbl">4 Shields/month with Pro — auto-replenished</div>'
+    + '<button class="btn btn-trial" onclick="window.open(\'https://rzp.io/rzp/zJ6jF8B\',\'_blank\');closeStreakModal()" style="margin-bottom:0">Protect future streaks — ₹149/month</button>'
+    + '<button class="sm-skip" onclick="closeStreakModal()">Start a fresh streak instead</button>'
+    + '</div>';
+  m.addEventListener('click', function (e) { if (e.target === m) closeStreakModal(); });
+  document.body.appendChild(m);
+  requestAnimationFrame(function () { m.classList.add('on'); });
+}
+
+function showStreakPromoModal(streak) {
+  var m = document.createElement('div');
+  m.className = 'streak-modal-overlay';
+  m.innerHTML =
+    '<div class="streak-modal"><div class="sm-orb promo"></div>'
+    + '<div class="sm-emoji">🔥</div>'
+    + '<div class="sm-title">Your ' + streak + '-day streak is your best yet</div>'
+    + '<div class="sm-sub">Aspirants with 7+ day streaks score 23% higher in mock tests. One missed day and it\'s gone — unless you\'re protected.</div>'
+    + '<div class="sm-shields-row"><div class="sm-shield active">🛡️</div><div class="sm-shield active">🛡️</div><div class="sm-shield active">🛡️</div><div class="sm-shield active">🛡️</div></div>'
+    + '<div class="sm-shields-lbl">4 Streak Shields every month with Pro</div>'
+    + '<button class="btn btn-trial" onclick="window.open(\'https://rzp.io/rzp/zJ6jF8B\',\'_blank\');closeStreakModal()" style="margin-bottom:0">Protect my streak — ₹149/month</button>'
+    + '<button class="sm-skip" onclick="closeStreakModal()">I\'ll risk it</button>'
+    + '</div>';
+  m.addEventListener('click', function (e) { if (e.target === m) closeStreakModal(); });
+  document.body.appendChild(m);
+  requestAnimationFrame(function () { m.classList.add('on'); });
+}
+
+function closeStreakModal() {
+  var m = document.querySelector('.streak-modal-overlay'); if (!m) return;
+  m.classList.remove('on');
+  setTimeout(function () { if (m.parentNode) m.remove(); }, 350);
+}
+
+function updateShieldUI(shields) {
+  var el = document.getElementById('h-shields'); if (el) el.textContent = shields;
+  var chip = document.getElementById('shield-chip'); if (!chip) return;
+  var color  = shields === 0 ? '#FDA4AF' : shields <= 1 ? '#FCD34D' : '#6EE7B7';
+  var bg     = shields === 0 ? 'rgba(244,63,94,.08)' : shields <= 1 ? 'rgba(245,158,11,.08)' : 'rgba(16,185,129,.08)';
+  var border = shields === 0 ? 'rgba(244,63,94,.25)' : shields <= 1 ? 'rgba(245,158,11,.25)' : 'rgba(16,185,129,.25)';
+  chip.style.color = color; chip.style.background = bg; chip.style.borderColor = border;
+}
+
+function updateStreakUI(streak) {
+  var el = document.getElementById('hst'); if (el) el.textContent = streak;
+}
+
+function showShieldInfo() {
+  var shields = P ? parseInt(P.streak_shields) || 0 : 0;
+  if (P && P.plan === 'pro') {
+    toast('🛡️ Pro: ' + shields + ' shields this month. Replenish on billing date.', 'ok');
+  } else if (shields === 0) {
+    toast('No shields left! Pro gives 4 shields/month 🛡️', 'err');
+    setTimeout(function () { window.open('https://rzp.io/rzp/zJ6jF8B', '_blank'); }, 1400);
+  } else {
+    toast('🛡️ ' + shields + ' shield' + (shields !== 1 ? 's' : '') + ' protect your streak if you miss a day', 'ok');
+  }
 }
