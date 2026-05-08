@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#07090F"/>
+  <title>Privacy Policy & Terms — Micro Mock</title>
+  <style>
+    :root {
+      --bg: #07090F; --s1: #0D1117; --s2: #131922;
+      --brand: #6366F1; --cyan: #22D3EE;
+      --t1: #F8FAFC; --t2: #94A3B8; --t3: #475569;
+      --bd: rgba(255,255,255,.06); --bd2: rgba(255,255,255,.1);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg); color: var(--t1);
+      min-height: 100vh; overflow-x: hidden;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      background: rgba(7,9,15,.9);
+      border-bottom: 1px solid var(--bd);
+      padding: 16px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(20px);
+    }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo-text { font-size: 17px; font-weight: 900; letter-spacing: -.3px; color: var(--t1); }
+    .logo-text span { background: linear-gradient(135deg, var(--brand), var(--cyan)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .back-btn {
+      background: rgba(99,102,241,.1); border: 1px solid rgba(99,102,241,.2);
+      border-radius: 20px; padding: 7px 14px; font-size: 12px; font-weight: 700;
+      color: #A5B4FC; cursor: pointer; text-decoration: none;
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(135deg, rgba(99,102,241,.08), rgba(16,185,129,.04));
+      border-bottom: 1px solid var(--bd);
+      padding: 40px 24px 32px; text-align: center;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(99,102,241,.12); border: 1px solid rgba(99,102,241,.25);
+      border-radius: 20px; padding: 5px 14px;
+      font-size: 11px; font-weight: 700; letter-spacing: .6px;
+      color: #A5B4FC; text-transform: uppercase; margin-bottom: 14px;
+    }
+    .hero h1 { font-size: 28px; font-weight: 900; letter-spacing: -1px; line-height: 1.2; margin-bottom: 10px; }
+    .hero p  { font-size: 14px; color: var(--t2); line-height: 1.7; max-width: 340px; margin: 0 auto; }
+    .hero-updated {
+      display: inline-block; margin-top: 14px;
+      background: var(--s2); border: 1px solid var(--bd2);
+      border-radius: 20px; padding: 5px 13px;
+      font-size: 11px; color: var(--t3); font-weight: 600;
+    }
+
+    /* ── NAV TABS ── */
+    .tabs {
+      display: flex; background: var(--s1);
+      border-bottom: 1px solid var(--bd);
+      position: sticky; top: 57px; z-index: 40;
+    }
+    .tab {
+      flex: 1; padding: 14px 8px; text-align: center;
+      font-size: 13px; font-weight: 700; color: var(--t3);
+      cursor: pointer; border: none; background: none;
+      font-family: inherit; border-bottom: 2px solid transparent;
+      transition: all .2s;
+    }
+    .tab.on { color: var(--brand); border-bottom-color: var(--brand); }
+
+    /* ── CONTENT ── */
+    .content { max-width: 680px; margin: 0 auto; padding: 24px 20px 80px; }
+    .section  { display: none; }
+    .section.on { display: block; }
+
+    .card {
+      background: var(--s1); border: 1px solid var(--bd);
+      border-radius: 16px; padding: 20px; margin-bottom: 14px;
+    }
+    .card-icon { font-size: 28px; margin-bottom: 12px; }
+    .card h2   { font-size: 16px; font-weight: 800; letter-spacing: -.3px; margin-bottom: 10px; }
+    .card h3   { font-size: 14px; font-weight: 700; color: var(--brand); margin: 14px 0 6px; }
+    .card p    { font-size: 13px; color: var(--t2); line-height: 1.8; margin-bottom: 8px; }
+    .card ul   { padding-left: 18px; }
+    .card li   { font-size: 13px; color: var(--t2); line-height: 1.8; margin-bottom: 4px; }
+    .card a    { color: #A5B4FC; text-decoration: none; }
+    .card a:hover { text-decoration: underline; }
+
+    .highlight {
+      background: rgba(99,102,241,.06); border: 1px solid rgba(99,102,241,.15);
+      border-radius: 12px; padding: 14px 16px; margin: 12px 0;
+      font-size: 13px; color: #A5B4FC; line-height: 1.7;
+    }
+    .highlight.green {
+      background: rgba(16,185,129,.06); border-color: rgba(16,185,129,.15); color: #6EE7B7;
+    }
+    .highlight.amber {
+      background: rgba(245,158,11,.06); border-color: rgba(245,158,11,.15); color: #FCD34D;
+    }
+
+    .divider { height: 1px; background: var(--bd); margin: 6px 0 16px; }
+
+    /* ── CONTACT ── */
+    .contact-card {
+      background: linear-gradient(135deg, rgba(99,102,241,.1), rgba(99,102,241,.04));
+      border: 1px solid rgba(99,102,241,.22);
+      border-radius: 16px; padding: 22px; text-align: center; margin-bottom: 14px;
+    }
+    .contact-card h2 { font-size: 17px; font-weight: 900; margin-bottom: 8px; }
+    .contact-card p  { font-size: 13px; color: var(--t2); line-height: 1.7; margin-bottom: 16px; }
+    .contact-email {
+      display: inline-block;
+      background: rgba(99,102,241,.12); border: 1px solid rgba(99,102,241,.25);
+      border-radius: 10px; padding: 10px 20px;
+      font-size: 14px; font-weight: 700; color: #A5B4FC;
+      text-decoration: none;
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      background: var(--s1); border-top: 1px solid var(--bd);
+      padding: 20px 24px; text-align: center;
+      font-size: 12px; color: var(--t3); line-height: 1.8;
+    }
+    .footer a { color: var(--brand); text-decoration: none; }
+
+    /* ── LIGHT MODE ── */
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #F1F5F9; --s1: #FFFFFF; --s2: #F8FAFC;
+        --t1: #0F172A; --t2: #475569; --t3: #94A3B8;
+        --bd: rgba(0,0,0,.08); --bd2: rgba(0,0,0,.12);
+      }
+      .header { background: rgba(241,245,249,.95); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<div class="header">
+  <a class="logo" href="index.html">
+    <svg width="26" height="26" viewBox="0 0 72 72" fill="none">
+      <rect width="72" height="72" rx="20" fill="url(#hl1)"/>
+      <path d="M40 14L22 40h14l-4 18 22-24H40L42 14z" fill="white"/>
+      <circle cx="52" cy="52" r="12" fill="url(#hl2)"/>
+      <path d="M47 52l3 3 5-6" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <defs>
+        <linearGradient id="hl1" x1="0" y1="0" x2="72" y2="72"><stop offset="0%" stop-color="#6366F1"/><stop offset="100%" stop-color="#8B5CF6"/></linearGradient>
+        <linearGradient id="hl2" x1="40" y1="40" x2="64" y2="64"><stop offset="0%" stop-color="#10B981"/><stop offset="100%" stop-color="#059669"/></linearGradient>
+      </defs>
+    </svg>
+    <div class="logo-text">Micro <span>Mock</span></div>
+  </a>
+  <a class="back-btn" href="index.html">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Back to App
+  </a>
+</div>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="hero-badge">Legal & Trust</div>
+  <h1>Privacy Policy<br/>&amp; Terms of Use</h1>
+  <p>We believe in being completely transparent about how Micro Mock works and how we handle your data.</p>
+  <div class="hero-updated">Last updated: May 2026</div>
+</div>
+
+<!-- ── TABS ── -->
+<div class="tabs">
+  <button class="tab on" onclick="showTab('privacy')">Privacy Policy</button>
+  <button class="tab" onclick="showTab('terms')">Terms of Use</button>
+  <button class="tab" onclick="showTab('contact')">Contact</button>
+</div>
+
+<!-- ── CONTENT ── -->
+<div class="content">
+
+  <!-- ══ PRIVACY POLICY ══ -->
+  <div class="section on" id="tab-privacy">
+
+    <div class="highlight green">
+      🛡️ Short version: We collect only what's needed to run the app. We never sell your data. Ever.
+    </div>
+
+    <div class="card">
+      <div class="card-icon">👤</div>
+      <h2>What Information We Collect</h2>
+      <h3>Account Information</h3>
+      <p>When you sign up, we collect:</p>
+      <ul>
+        <li>Your name (as you enter it)</li>
+        <li>Email address (via Google Sign-In or direct signup)</li>
+        <li>Your target exam selection (UPSC, SSC, Banking, RBI)</li>
+      </ul>
+      <h3>Usage Data</h3>
+      <p>To personalise your experience and show you your progress, we store:</p>
+      <ul>
+        <li>Quiz attempt history — scores, accuracy, time taken</li>
+        <li>Your current streak and streak shield count</li>
+        <li>XP points and level</li>
+        <li>AI question bank balance</li>
+        <li>Number of MCQs generated</li>
+      </ul>
+      <h3>What We Do NOT Collect</h3>
+      <div class="highlight green">
+        We do not collect your phone number, location, device identifiers, contacts, camera access, microphone access, or any biometric data.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">🔒</div>
+      <h2>How We Use Your Information</h2>
+      <p>Your data is used exclusively to:</p>
+      <ul>
+        <li>Run your personalised quiz experience</li>
+        <li>Track your preparation progress over time</li>
+        <li>Show you your performance on the leaderboard</li>
+        <li>Provide AI-powered explanations via our chat feature</li>
+        <li>Send you streak and progress notifications (if enabled)</li>
+      </ul>
+      <div class="divider"></div>
+      <p>We do <strong>not</strong> use your data for advertising, profiling, or selling to third parties.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">🤝</div>
+      <h2>Third-Party Services</h2>
+      <p>Micro Mock uses the following trusted third-party services to function:</p>
+      <h3>Supabase</h3>
+      <p>Our database and authentication provider. Your account data and quiz history are stored securely on Supabase servers. Supabase is SOC 2 compliant. <a href="https://supabase.com/privacy" target="_blank">Supabase Privacy Policy →</a></p>
+      <h3>Google Sign-In</h3>
+      <p>Used for account creation and login. We only receive your name and email from Google — nothing else. <a href="https://policies.google.com/privacy" target="_blank">Google Privacy Policy →</a></p>
+      <h3>Groq AI</h3>
+      <p>Powers our AI chat feature. Your questions to the AI are sent to Groq for processing. We do not store your chat history beyond your current session. <a href="https://groq.com/privacy-policy" target="_blank">Groq Privacy Policy →</a></p>
+      <h3>DiceBear</h3>
+      <p>Generates your profile avatar. Only a hashed, anonymous seed value is sent — your user ID is never exposed. <a href="https://dicebear.com/legal/privacy-policy" target="_blank">DiceBear Privacy Policy →</a></p>
+      <h3>Razorpay</h3>
+      <p>Processes Pro subscription payments. We never store your payment card details — all payment data is handled by Razorpay directly. <a href="https://razorpay.com/privacy/" target="_blank">Razorpay Privacy Policy →</a></p>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <h2>Leaderboard & Public Data</h2>
+      <p>If you complete a daily quiz, your name and score may appear on the public leaderboard visible to other Micro Mock users. This is limited to:</p>
+      <ul>
+        <li>Your display name (as entered during onboarding)</li>
+        <li>Your quiz score and accuracy for that day</li>
+        <li>Your target exam</li>
+      </ul>
+      <div class="highlight amber">
+        Your email address is never shown publicly anywhere in the app.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">🗑️</div>
+      <h2>Your Rights & Data Deletion</h2>
+      <p>You have full control over your data. You can request:</p>
+      <ul>
+        <li><strong>Data export</strong> — a copy of everything we hold about you</li>
+        <li><strong>Data deletion</strong> — complete removal of your account and all associated data</li>
+        <li><strong>Data correction</strong> — update your name or exam target at any time in the app</li>
+      </ul>
+      <div class="divider"></div>
+      <p>To exercise any of these rights, email us at <a href="mailto:support@micro-mock.in">support@micro-mock.in</a>. We will respond within 7 business days.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">🔐</div>
+      <h2>Data Security</h2>
+      <p>We take security seriously:</p>
+      <ul>
+        <li>All data is transmitted over HTTPS/TLS encryption</li>
+        <li>Authentication uses industry-standard PKCE OAuth flow</li>
+        <li>Passwords are hashed and never stored in plain text</li>
+        <li>XP and score modifications go through server-side RPC functions — not directly from the client</li>
+        <li>Row-Level Security (RLS) is enforced in our database — users can only access their own data</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">👶</div>
+      <h2>Children's Privacy</h2>
+      <p>Micro Mock is designed for adults preparing for government competitive exams. We do not knowingly collect personal information from anyone under the age of 13.</p>
+      <p>If you believe a child has provided us personal information, please contact us immediately and we will delete it.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">🔄</div>
+      <h2>Changes to This Policy</h2>
+      <p>We may update this Privacy Policy from time to time. When we do, we will update the "Last updated" date at the top of this page. Continued use of Micro Mock after changes constitutes your acceptance of the updated policy.</p>
+      <p>For significant changes, we will notify you within the app.</p>
+    </div>
+
+  </div>
+
+  <!-- ══ TERMS OF USE ══ -->
+  <div class="section" id="tab-terms">
+
+    <div class="highlight">
+      📋 By using Micro Mock, you agree to these terms. Please read them — they're written in plain language.
+    </div>
+
+    <div class="card">
+      <div class="card-icon">✅</div>
+      <h2>Acceptance of Terms</h2>
+      <p>By accessing or using Micro Mock ("the App"), you agree to be bound by these Terms of Use. If you do not agree, please do not use the App.</p>
+      <p>These terms apply to all users, including free users and Pro subscribers.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">📱</div>
+      <h2>Use of the App</h2>
+      <h3>You may:</h3>
+      <ul>
+        <li>Use the App for personal, non-commercial exam preparation</li>
+        <li>Access all features available under your plan (Free or Pro)</li>
+        <li>Share your scores and prep reports via the share feature</li>
+      </ul>
+      <h3>You may not:</h3>
+      <ul>
+        <li>Copy, reproduce, or distribute quiz questions outside the App</li>
+        <li>Attempt to manipulate scores, XP, or leaderboard rankings</li>
+        <li>Use automated tools or bots to interact with the App</li>
+        <li>Share your account credentials with others</li>
+        <li>Use the App for any unlawful purpose</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">⭐</div>
+      <h2>Free Plan & Pro Subscription</h2>
+      <h3>Free Plan</h3>
+      <p>The free plan includes access to daily quizzes, basic AI chat (3 questions/day with rollover), PYQ practice, and basic streak tracking.</p>
+      <h3>Pro Subscription</h3>
+      <p>Pro is a monthly subscription at ₹149/month, billed through Razorpay. Pro includes:</p>
+      <ul>
+        <li>4 Streak Shields per month</li>
+        <li>Full Subject Diagnosis</li>
+        <li>Weekly Prep Report</li>
+        <li>Unlimited AI questions</li>
+        <li>Unlimited MCQ generation</li>
+      </ul>
+      <h3>Free Trial</h3>
+      <p>New users receive a 7-day Pro trial automatically. No payment is required to start the trial. After the trial ends, the account reverts to the free plan unless upgraded.</p>
+      <h3>Refunds</h3>
+      <div class="highlight amber">
+        Subscriptions are non-refundable once the billing period has begun. If you believe you were charged in error, contact us within 48 hours at support@micro-mock.in.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">🤖</div>
+      <h2>AI-Generated Content</h2>
+      <p>Micro Mock uses AI to generate MCQs and provide explanations. Please note:</p>
+      <ul>
+        <li>AI-generated content may occasionally contain errors</li>
+        <li>Do not rely solely on AI explanations for exam preparation</li>
+        <li>AI responses are for educational assistance only — not official exam guidance</li>
+        <li>We are not responsible for any incorrect AI-generated content</li>
+      </ul>
+      <p>If you find an error in AI content, please report it via the contact form so we can improve.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">🏆</div>
+      <h2>Leaderboard & Gamification</h2>
+      <p>The leaderboard is for motivational purposes. XP, levels, and rankings are in-app features with no real-world monetary value.</p>
+      <p>We reserve the right to reset, modify, or remove any user's XP or ranking if we detect manipulation or abuse of the gamification system.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">⚖️</div>
+      <h2>Intellectual Property</h2>
+      <p>All content in the App — including quiz questions, UI design, branding, and AI-generated MCQs — is the property of Micro Mock or its content providers.</p>
+      <p>Previous Year Questions (PYQs) used in the App are in the public domain. We make no claim of ownership over government exam question papers.</p>
+      <p>You may not reproduce, redistribute, or commercialise any App content without written permission.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">🚫</div>
+      <h2>Limitation of Liability</h2>
+      <p>Micro Mock is provided "as is" without warranties of any kind. We do not guarantee:</p>
+      <ul>
+        <li>Uninterrupted or error-free service</li>
+        <li>That using the App will result in exam success</li>
+        <li>The accuracy of all quiz questions and explanations</li>
+      </ul>
+      <p>To the maximum extent permitted by law, Micro Mock shall not be liable for any indirect, incidental, or consequential damages arising from your use of the App.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">📍</div>
+      <h2>Governing Law</h2>
+      <p>These Terms are governed by the laws of India. Any disputes shall be subject to the exclusive jurisdiction of the courts of India.</p>
+      <p>These Terms constitute the entire agreement between you and Micro Mock regarding your use of the App.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">🔄</div>
+      <h2>Changes to Terms</h2>
+      <p>We may update these Terms at any time. Continued use of the App after changes constitutes your acceptance. We will notify users of significant changes within the App.</p>
+    </div>
+
+  </div>
+
+  <!-- ══ CONTACT ══ -->
+  <div class="section" id="tab-contact">
+
+    <div class="contact-card">
+      <h2>Get in Touch</h2>
+      <p>Have a question about your data, a billing issue, or found a bug? We respond to every message within 48 hours.</p>
+      <a class="contact-email" href="mailto:support@micro-mock.in">support@micro-mock.in</a>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">🐛</div>
+      <h2>Report a Bug</h2>
+      <p>Found something broken? Email us with:</p>
+      <ul>
+        <li>What you were doing when it happened</li>
+        <li>What you expected to happen</li>
+        <li>What actually happened</li>
+        <li>Your device and browser/app version if possible</li>
+      </ul>
+      <p style="margin-top:10px">Email: <a href="mailto:support@micro-mock.in">support@micro-mock.in</a> with subject line "Bug Report"</p>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">🗑️</div>
+      <h2>Delete My Account</h2>
+      <p>To permanently delete your account and all associated data, email us at <a href="mailto:support@micro-mock.in">support@micro-mock.in</a> with subject line "Delete My Account" from your registered email address.</p>
+      <div class="highlight amber">
+        Account deletion is permanent and irreversible. All your quiz history, XP, and streak data will be removed within 7 business days.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">💡</div>
+      <h2>Feature Requests</h2>
+      <p>Have an idea that would make Micro Mock better for your exam prep? We genuinely read every suggestion.</p>
+      <p style="margin-top:8px">Email: <a href="mailto:support@micro-mock.in">support@micro-mock.in</a> with subject line "Feature Request"</p>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">🏢</div>
+      <h2>About Micro Mock</h2>
+      <p>Micro Mock is built for India's government exam aspirants — the millions of hardworking students in Tier-2 and Tier-3 cities who deserve better preparation tools without paying ₹50,000 for coaching.</p>
+      <p style="margin-top:8px">We're a small independent team building in public. Every piece of feedback shapes the product.</p>
+      <div class="highlight green">
+        🇮🇳 Proudly made in India, for India's aspirants.
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ── FOOTER ── -->
+<div class="footer">
+  <div>© 2026 Micro Mock. All rights reserved.</div>
+  <div style="margin-top:6px">
+    <a href="index.html">Back to App</a> · 
+    <a href="mailto:support@micro-mock.in">Contact Us</a>
+  </div>
+</div>
+
+<script>
+  function showTab(id) {
+    document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('on'); });
+    document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('on'); });
+    document.getElementById('tab-' + id).classList.add('on');
+    event.target.classList.add('on');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+
+</body>
+</html>
