@@ -8,7 +8,7 @@ async function renderReport() {
 
   el.innerHTML =
     '<div class="nav">'
-    + '<button onclick="go(\'pf\')" style="background:none;border:none;color:var(--t3);font-size:14px;cursor:pointer;font-weight:700;font-family:inherit;display:flex;align-items:center;gap:5px">'
+    + '<button onclick="renderPF()" style="background:none;border:none;color:var(--t3);font-size:14px;cursor:pointer;font-weight:700;font-family:inherit;display:flex;align-items:center;gap:5px">'
     + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>Back</button>'
     + '<div style="font-size:15px;font-weight:800">Prep Report</div>'
     + '<div style="width:40px"></div>'
