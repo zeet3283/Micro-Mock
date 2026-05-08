@@ -289,6 +289,7 @@ async function renderPF() {
     + '<button class="theme-toggle' + (document.body.classList.contains('light')?' on':'') + '" onclick="toggleTheme();renderPF()"></button>'
     + '</div>'
     + '<button class="btn" style="background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.18);color:#FDA4AF;margin-top:4px" onclick="logout()">Sign Out</button>'
+    + '<div style="text-align:center;padding:12px 0 4px"><a href="privacy.html" style="font-size:12px;color:var(--t3);text-decoration:none">Privacy Policy & Terms</a></div>'
     // ── Gen history ──
     + '<div class="gen-hist-section" style="margin-top:18px">'
     + '<div class="gen-hist-hdr"><div class="gen-hist-title">⚡ Generated Quiz History</div>'
